@@ -1,5 +1,4 @@
 using System;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class GamaManager : MonoBehaviour {
@@ -8,6 +7,9 @@ public class GamaManager : MonoBehaviour {
     public const float CELL_SIZE = 1.0f;
     public const float GRIDS_DISTANCE = 20.0f;
     public static GamaManager Instance { get; private set; }
+
+    [SerializeField] private Grid gridPlayer1;
+    [SerializeField] private Grid gridPlayer2;
 
     public event EventHandler<OnChangePlayeblePlayerTypeEventArgs> OnChangePlayeblePlayerType;
     public class OnChangePlayeblePlayerTypeEventArgs : EventArgs {
@@ -24,14 +26,8 @@ public class GamaManager : MonoBehaviour {
 
     private Player localPlayerType;
     private Player currentPlayablePlayerType;
-    public GamePosition[,] gridPlayer1 = new GamePosition[GRID_SIZE, GRID_SIZE];
-    public GamePosition[,] gridPlayer2 = new GamePosition[GRID_SIZE, GRID_SIZE];
-
-
-    // Good Camara positions
-    // 17.5, 15, -5 - Player 1
-    // -17.5, 15, -5 - Player 2
-    // 0, 35, -5 - Middle
+    public GamePosition[,] gridArrayPlayer1 = new GamePosition[GRID_SIZE, GRID_SIZE];
+    public GamePosition[,] gridArrayPlayer2 = new GamePosition[GRID_SIZE, GRID_SIZE];
 
     private void Awake() {
         if (Instance != null) {
@@ -42,8 +38,8 @@ public class GamaManager : MonoBehaviour {
 
     private void Start() {
         var gridXPosition = GRID_SIZE * CELL_SIZE / 2f + GRIDS_DISTANCE / 2f;
-        InitializeGrid(gridPlayer1, new Vector3(gridXPosition, 0, 0));
-        InitializeGrid(gridPlayer2, new Vector3(-gridXPosition, 0, 0));
+        InitializeGrid(gridArrayPlayer1, new Vector3(gridXPosition, 0, 0), gridPlayer1);
+        InitializeGrid(gridArrayPlayer2, new Vector3(-gridXPosition, 0, 0), gridPlayer2);
         localPlayerType = Player.Player1;
         currentPlayablePlayerType = Player.Player1;
     }
@@ -53,7 +49,7 @@ public class GamaManager : MonoBehaviour {
             gamePosition.GetComponent<Renderer>().material.color == Color.red ? Color.blue : Color.red;
         localPlayerType = localPlayerType == Player.Player1 ? Player.Player2 : Player.Player1;
         currentPlayablePlayerType = localPlayerType == Player.Player1 ? Player.Player2 : Player.Player1;
-        Invoke("ChangeCameraPosition", 0.5f);
+        // Invoke("ChangeCameraPosition", 0.5f);
     }
 
     public void ChangeCameraPosition() {
@@ -62,15 +58,17 @@ public class GamaManager : MonoBehaviour {
         });
     }
 
-    public void InitializeGrid(GamePosition[,] grid, Vector3 initialPosition) {
+    public void InitializeGrid(GamePosition[,] gridArray, Vector3 initialPosition, Grid grid) {
         initialPosition = findInitialPositionToRender(initialPosition);
+        grid.transform.position = new Vector3(initialPosition.x - (GRID_SIZE / 2f), 0, initialPosition.z - (GRID_SIZE / 2f));   
         for (int x = 0; x < GRID_SIZE; x++) {
             for (int y = 0; y < GRID_SIZE; y++) {
                 GameObject cell = Instantiate(cellPrefab, new Vector3(
                         x * CELL_SIZE + initialPosition.x, 0, y * CELL_SIZE + initialPosition.z
                     ), Quaternion.identity);
                 cell.GetComponent<GamePosition>().SetPosition(x, y);
-                grid[x, y] = cell.GetComponent<GamePosition>();
+                cell.transform.SetParent(grid.transform);
+                gridArray[x, y] = cell.GetComponent<GamePosition>();
             }
         }
     }

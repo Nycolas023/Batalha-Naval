@@ -10,7 +10,10 @@ public class CameraManager : MonoBehaviour {
 
     private void Awake() {
         targetPosition = new Vector3(0, 35, -5);
+        targetPosition = new Vector3(17.5f, 15, -5);
         mainCamera.transform.position = new Vector3(0, 35, -5);
+        mainCamera.transform.position = new Vector3(17.5f, 15, -5);
+        mainCamera.transform.rotation = Quaternion.Euler(78, 0, 0);
     }
 
     private void Start() {
