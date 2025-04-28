@@ -52,11 +52,11 @@ public class InputManager : MonoBehaviour {
         return null;
     }
 
-    public Boat GetBoatBeaingIntercepted(out RaycastHit hit) {
+    public IBoat GetBoatBeaingIntercepted(out RaycastHit hit) {
         Ray ray = GetRaycastHit();
         bool didRaycastHitSomething = Physics.Raycast(ray, out hit, Mathf.Infinity, boatLayerMask);
         if (didRaycastHitSomething) {
-            return hit.collider.GetComponent<Boat>();
+            return hit.collider.GetComponent(typeof(IBoat)) as IBoat;
         }
         return null;
     }

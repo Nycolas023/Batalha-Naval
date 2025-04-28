@@ -25,7 +25,7 @@ public class CameraManager : MonoBehaviour {
             sinTime += Time.deltaTime * cameraSpeed;
             sinTime = Mathf.Clamp(sinTime, 0, (float)Math.PI);
             float t = Evaluate(sinTime);
-            mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, targetPosition, t);
+            // mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, targetPosition, t);
         }
     }
 

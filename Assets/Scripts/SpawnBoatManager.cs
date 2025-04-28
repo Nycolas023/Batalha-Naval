@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class SpawnBoatManager : MonoBehaviour {
@@ -8,11 +7,16 @@ public class SpawnBoatManager : MonoBehaviour {
     [SerializeField] private Button buttonSpawnBoat;
     [SerializeField] private Button testButton;
 
-    private Boat currentBoat;
     private bool isDragging;
-    private GameObject currentDraggedObject;
+    private IBoat currentDraggedObject;
+
+    private Vector3 initialBoatPosition;
 
     private bool loopActive = false;
+
+    private void Awake() {
+        initialBoatPosition = new Vector3(17.5f, 0, -9);
+    }
 
     private void Start() {
         buttonSpawnBoat.onClick.AddListener(SpawnBoat);
@@ -20,8 +24,8 @@ public class SpawnBoatManager : MonoBehaviour {
     }
 
     private void Update() {
-        RaycastHit hit;
-        Boat boat = InputManager.Instance.GetBoatBeaingIntercepted(out hit);
+        RaycastHit boatHit;
+        IBoat boat = InputManager.Instance.GetBoatBeaingIntercepted(out boatHit);
 
         RaycastHit gridHit;
         Grid grid = InputManager.Instance.GetGridBeaingIntercepted(out gridHit);
@@ -30,39 +34,59 @@ public class SpawnBoatManager : MonoBehaviour {
         InputManager.Instance.GetGameObjectBeaingIntercepted(out defaultHit);
 
         if (loopActive) {
-            Debug.DrawRay(hit.point, Vector3.up * 10, Color.red);
-            Debug.Log("Loop is active! " + defaultHit.point.x + " " + 0.25f + " " + defaultHit.point.z);
+            Debug.Log("Loop is active! " + boat?.positonOnGrid.x + " " + boat?.positonOnGrid.z);
         }
 
-        if (currentBoat != null && currentBoat != null && boat != null) {
-            if (Input.GetMouseButtonDown(0)) {
-                isDragging = true;
-                currentDraggedObject = boat.gameObject;
-            }
-        }
+        //Is valid Dragging
+        if (Input.GetMouseButtonDown(0)) {
+            if (boat != null) {
+                currentDraggedObject = boat;
 
-        if (isDragging && currentDraggedObject != null) {
-            if (grid != null) {
-                Vector3Int gridPosition = grid.WorldToCell(gridHit.point);
-                Vector3 worldPosition = grid.GetCellCenterWorld(gridPosition);
-                if(worldPosition.x == 0f) {
-                    Debug.Log("Grid position is zero, not moving the object.");
+                //Check if is the start of dragging
+                if (!isDragging && grid != null) {
+                    currentDraggedObject.RemoveBoatFromGrid();
                 }
-                currentDraggedObject.transform.position = new Vector3(worldPosition.x, 0.25f, worldPosition.z);
+
+                isDragging = true;
+            }
+        }
+
+        //Move Boat
+        if (isDragging && currentDraggedObject != null) {
+            //Check if is clipping Grid
+            if (grid != null) {
+                currentDraggedObject.positonOnGrid = grid.WorldToCell(gridHit.point);
+                Vector3 worldPosition = grid.GetCellCenterWorld(currentDraggedObject.positonOnGrid);
+                currentDraggedObject.gameObject.transform.position = new Vector3(worldPosition.x, 0.25f, worldPosition.z);
             } else {
-                currentDraggedObject.transform.position = new Vector3(defaultHit.point.x, 0.25f, defaultHit.point.z);
+                //If not clipping, set free dragging
+                currentDraggedObject.gameObject.transform.position = new Vector3(defaultHit.point.x, 0.25f, defaultHit.point.z);
+                currentDraggedObject.positonOnGrid = new Vector3Int(-1, 0, -1);
             }
 
+            //Check if letting go of the mouse button
             if (Input.GetMouseButtonUp(0)) {
+                //If position is invalid, return to initial position
+                if (!GamaManager.Instance.IsBoatPositionValid(currentDraggedObject)) {
+                    currentDraggedObject.gameObject.transform.position = initialBoatPosition;
+                    currentDraggedObject.ShowInvalidPosition();
+                } else {
+                    //If position is valid, set the boat to the grid, hide invalid position notification and set the boat to initial position
+                    currentDraggedObject.HideInvalidPosition();
+                    currentDraggedObject.positonOnGrid = currentDraggedObject.positonOnGrid;
+                    GamaManager.Instance.AddBoatToGrid(currentDraggedObject);
+                }
+
                 isDragging = false;
                 currentDraggedObject = null;
             }
 
+            //Right click to rotate the boat
             if (Input.GetMouseButtonDown(1)) {
-                int rotation = currentDraggedObject.transform.rotation.y == 0 ? 90 : 0;
-                currentDraggedObject.transform.rotation = Quaternion.Euler(
-                    0, 
-                    rotation, 
+                int rotation = currentDraggedObject.gameObject.transform.rotation.y == 0 ? 90 : 0;
+                currentDraggedObject.gameObject.transform.rotation = Quaternion.Euler(
+                    0,
+                    rotation,
                     0
                 );
             }
@@ -70,15 +94,10 @@ public class SpawnBoatManager : MonoBehaviour {
     }
 
     private void SpawnBoat() {
-        Vector3 origin = new Vector3(17.5f, 0, -9);
-        GameObject boat = Instantiate(boatPrefab, origin, Quaternion.identity);
-
-        currentBoat = boat.GetComponent<Boat>();
+        GameObject boat = Instantiate(boatPrefab, initialBoatPosition, Quaternion.identity);
     }
 
     private void TestButtonClicked() {
-        Debug.Log("Test button clicked!");
-        // Add your test logic here
-        loopActive = !loopActive; // Toggle the loopActive state
+        loopActive = !loopActive;
     }
 }
