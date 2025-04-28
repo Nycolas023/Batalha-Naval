@@ -10,7 +10,10 @@ public class CameraManager : MonoBehaviour {
 
     private void Awake() {
         targetPosition = new Vector3(0, 35, -5);
+        targetPosition = new Vector3(17.5f, 15, -5);
         mainCamera.transform.position = new Vector3(0, 35, -5);
+        mainCamera.transform.position = new Vector3(17.5f, 15, -5);
+        mainCamera.transform.rotation = Quaternion.Euler(78, 0, 0);
     }
 
     private void Start() {
@@ -22,7 +25,7 @@ public class CameraManager : MonoBehaviour {
             sinTime += Time.deltaTime * cameraSpeed;
             sinTime = Mathf.Clamp(sinTime, 0, (float)Math.PI);
             float t = Evaluate(sinTime);
-            mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, targetPosition, t);
+            // mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, targetPosition, t);
         }
     }
 
