@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class CircularBoat : MonoBehaviour, IBoat {
+public class LineBoat : MonoBehaviour, IBoat {
     [SerializeField] public int xlength { get; set; }
     [SerializeField] public int zlength { get; set; }
     public int[,] componetsGrid { get; set; }
@@ -14,15 +14,17 @@ public class CircularBoat : MonoBehaviour, IBoat {
 
     private void Awake() {
         xlength = 3;
-        zlength = 3;
+        zlength = 1;
 
-        xCenter = 1;
+        xCenter = 0;
         zCenter = 1;
 
+        rotation = 0f;
+
         componetsGrid = new int[,] {
-            { 1, 1, 1 },
-            { 1, 0, 1 },
-            { 1, 1, 1 }
+            { 1 },
+            { 1 },
+            { 1 }
         };
 
         HideInvalidPosition();
