@@ -8,16 +8,21 @@ public class CameraManager : MonoBehaviour {
     private float sinTime;
     private Vector3 targetPosition;
 
+    private Vector3 centerCameraPosition = new Vector3(0, 25, -5);
+    private Vector3 player1CameraPosition;
+    private Vector3 player2CameraPosition;
+
     private void Awake() {
-        targetPosition = new Vector3(0, 35, -5);
-        targetPosition = new Vector3(17.5f, 15, -5);
-        mainCamera.transform.position = new Vector3(0, 35, -5);
-        mainCamera.transform.position = new Vector3(17.5f, 15, -5);
-        mainCamera.transform.rotation = Quaternion.Euler(78, 0, 0);
+        var gridXPosition = GameManager.GRID_SIZE * GameManager.CELL_SIZE / 2f + GameManager.GRIDS_DISTANCE / 2f;
+        player1CameraPosition = new Vector3(gridXPosition, 12, -0.8f);
+        player2CameraPosition = new Vector3(-gridXPosition, 12, -0.8f);
+
+        mainCamera.transform.position = centerCameraPosition;
+        targetPosition = player1CameraPosition;
     }
 
     private void Start() {
-        GamaManager.Instance.OnChangePlayeblePlayerType += GamaManager_OnChangePlayablePlayerType;
+        GameManager.Instance.OnChangePlayeblePlayerType += GamaManager_OnChangePlayablePlayerType;
     }
 
     private void Update() {
@@ -25,18 +30,17 @@ public class CameraManager : MonoBehaviour {
             sinTime += Time.deltaTime * cameraSpeed;
             sinTime = Mathf.Clamp(sinTime, 0, (float)Math.PI);
             float t = Evaluate(sinTime);
-            // mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, targetPosition, t);
+            mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, targetPosition, t);
         }
     }
 
-    private void GamaManager_OnChangePlayablePlayerType(object sender, GamaManager.OnChangePlayeblePlayerTypeEventArgs e) {
-        var gridXPosition = GamaManager.GRID_SIZE * GamaManager.CELL_SIZE / 2f + GamaManager.GRIDS_DISTANCE / 2f;
-        if (e.playerType == GamaManager.Player.Player1) {
-            targetPosition = new Vector3(gridXPosition, 15, -5);
-        } else if (e.playerType == GamaManager.Player.Player2) {
-            targetPosition = new Vector3(-gridXPosition, 15, -5);
+    private void GamaManager_OnChangePlayablePlayerType(object sender, GameManager.OnChangePlayeblePlayerTypeEventArgs e) {
+        if (e.playerType == GameManager.Player.Player1) {
+            targetPosition = player1CameraPosition;
+        } else if (e.playerType == GameManager.Player.Player2) {
+            targetPosition = player2CameraPosition;
         } else {
-            targetPosition = new Vector3(0, 35, -5);
+            targetPosition = centerCameraPosition;
         }
     }
 

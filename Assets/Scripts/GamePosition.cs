@@ -7,7 +7,7 @@ public class GamePosition : MonoBehaviour {
     public int y { get; private set; }
 
     private void OnMouseDown() {
-        GamaManager.Instance.ChangeColor(this);
+        GameManager.Instance.ChangeColor(this);
     }
 
     public void SetPosition(int x, int y) {
