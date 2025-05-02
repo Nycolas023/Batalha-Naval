@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour {
     public const int GRID_SIZE = 10;
     public const float CELL_SIZE = 1.0f;
     public const float GRIDS_DISTANCE = 7.24f;
+    public const int MAX_BOAT_POINTS = 10;
     public static GameManager Instance { get; private set; }
 
     [SerializeField] private Grid gridPlayer1;
@@ -32,10 +33,12 @@ public class GameManager : MonoBehaviour {
     public GamePosition[,] gridArrayPlayer1 = new GamePosition[GRID_SIZE, GRID_SIZE];
     public bool[,] gridArrayPlayer1Occupied = new bool[GRID_SIZE, GRID_SIZE];
     public List<IBoat> boatsPlayer1 = new List<IBoat>();
+    public int boatPointsPlayer1 = 0;
 
     public GamePosition[,] gridArrayPlayer2 = new GamePosition[GRID_SIZE, GRID_SIZE];
     public bool[,] gridArrayPlayer2Occupied = new bool[GRID_SIZE, GRID_SIZE];
     public List<IBoat> boatsPlayer2 = new List<IBoat>();
+    public int boatPointsPlayer2 = 0;
 
     private void Awake() {
         if (Instance != null) {
@@ -114,8 +117,6 @@ public class GameManager : MonoBehaviour {
             xCenter = zCenter;
             zCenter = temp;
         }
-        var testex = boatGrid.GetLength(0);
-        var testez = boatGrid.GetLength(1);
         for (int x = 0; x < boatGrid.GetLength(1); x++) {
             for (int z = 0; z < boatGrid.GetLength(0); z++) {
                 if (boatGrid[z, x] == 0) continue;
