@@ -108,9 +108,19 @@ public class SpawnBoatManager : MonoBehaviour {
         if(boatInSpawn != null) {
             boatInSpawn.DestroyBoat();
         }
+
         GameObject boat = Instantiate(boatPrefab, initialBoatPosition, Quaternion.identity);
-        boatInSpawn = boat.GetComponent<IBoat>();
+        var boatComponent = boat.GetComponent<IBoat>();
+
+        if (GameManager.Instance.boatPointsPlayer1 + boatComponent.points > GameManager.MAX_BOAT_POINTS) {
+            Debug.Log("Max boat points reached!");
+            Destroy(boat);
+            return;
+        }
+
+        boatInSpawn = boatComponent;
         GameManager.Instance.boatsPlayer1.Add(boat.GetComponent<IBoat>());
+        GameManager.Instance.boatPointsPlayer1 += boatInSpawn.points;
     }
 
     private void TestButtonClicked() {

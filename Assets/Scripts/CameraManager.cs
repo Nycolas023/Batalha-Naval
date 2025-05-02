@@ -19,6 +19,8 @@ public class CameraManager : MonoBehaviour {
 
         mainCamera.transform.position = centerCameraPosition;
         targetPosition = player1CameraPosition;
+
+        mainCamera.transform.rotation = Quaternion.Euler(90, 0, 0);
     }
 
     private void Start() {
