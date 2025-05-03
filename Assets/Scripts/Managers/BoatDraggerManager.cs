@@ -1,30 +1,22 @@
 using UnityEngine;
-using UnityEngine.UI;
 
-public class SpawnBoatManager : MonoBehaviour {
-
-    [SerializeField] private GameObject circularBoatPrefab;
-    [SerializeField] private GameObject lineBoatPrefab;
-    [SerializeField] private Button buttonSpawnCircularBoat;
-    [SerializeField] private Button buttonSpawnLineBoat;
-    [SerializeField] private Button testButton;
-
+public class BoatDraggerManager : MonoBehaviour {
     private bool isDragging;
     private IBoat currentDraggedObject;
-    private IBoat boatInSpawn;
-
-    private Vector3 initialBoatPosition;
 
     private bool loopActive = false;
 
-    private void Awake() {
-        initialBoatPosition = new Vector3(8.62f, 0.6f, -6.3f);
-    }
+    public static BoatDraggerManager Instance { get; private set; }
 
-    private void Start() {
-        buttonSpawnCircularBoat.onClick.AddListener(() => SpawnBoat(circularBoatPrefab));
-        buttonSpawnLineBoat.onClick.AddListener(() => SpawnBoat(lineBoatPrefab));
-        testButton.onClick.AddListener(TestButtonClicked);
+    private IBoat boatInSpawn;
+
+    private bool isDraggingBoatActive = false;
+
+    private void Awake() {
+        if (Instance != null) {
+            Debug.LogError("More than one BoatDraggerManager instance!");
+        }
+        Instance = this;
     }
 
     private void Update() {
@@ -37,8 +29,16 @@ public class SpawnBoatManager : MonoBehaviour {
         RaycastHit defaultHit;
         InputManager.Instance.GetGameObjectBeaingIntercepted(out defaultHit);
 
+        Vector3 initialBoatPosition = SpawnBoatManager.Instance.initialBoatPosition;
+
         if (loopActive) {
             Debug.Log("Loop is active! " + GameManager.Instance.boatsPlayer1.Count);
+        }
+
+        if (!isDraggingBoatActive) {
+            if (Input.GetMouseButtonDown(0) && boat != null)
+                Debug.Log("Boat dragging is not active!");
+            return;
         }
 
         //Is valid Dragging
@@ -74,7 +74,7 @@ public class SpawnBoatManager : MonoBehaviour {
                 if (!GameManager.Instance.IsBoatPositionValid(currentDraggedObject)) {
                     currentDraggedObject.gameObject.transform.position = initialBoatPosition;
                     currentDraggedObject.ShowInvalidPosition();
-                    if(boatInSpawn != null && boatInSpawn != currentDraggedObject) {
+                    if (boatInSpawn != null && boatInSpawn != currentDraggedObject) {
                         boatInSpawn.DestroyBoat();
                     }
                     boatInSpawn = currentDraggedObject;
@@ -104,26 +104,18 @@ public class SpawnBoatManager : MonoBehaviour {
         }
     }
 
-    private void SpawnBoat(GameObject boatPrefab) {
-        if(boatInSpawn != null) {
-            boatInSpawn.DestroyBoat();
-        }
-
-        GameObject boat = Instantiate(boatPrefab, initialBoatPosition, Quaternion.identity);
-        var boatComponent = boat.GetComponent<IBoat>();
-
-        if (GameManager.Instance.boatPointsPlayer1 + boatComponent.points > GameManager.MAX_BOAT_POINTS) {
-            Debug.Log("Max boat points reached!");
-            Destroy(boat);
-            return;
-        }
-
-        boatInSpawn = boatComponent;
-        GameManager.Instance.boatsPlayer1.Add(boat.GetComponent<IBoat>());
-        GameManager.Instance.boatPointsPlayer1 += boatInSpawn.points;
+    public void SetLoopActive() {
+        loopActive = !loopActive;
     }
 
-    private void TestButtonClicked() {
-        loopActive = !loopActive;
+    public void SetBoatInSpawn(IBoat boat) {
+        if (boatInSpawn != null) {
+            boatInSpawn.DestroyBoat();
+        }
+        boatInSpawn = boat;
+    }
+
+    public void SetDraggingBoatActive(bool isActive) {
+        isDraggingBoatActive = isActive;
     }
 }

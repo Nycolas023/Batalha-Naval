@@ -29,6 +29,8 @@ public class LineBoat : MonoBehaviour, IBoat {
         };
 
         HideInvalidPosition();
+
+        GameManager.Instance.boatPointsPlayer1 += points;
     }
 
     public void ShowInvalidPosition() {

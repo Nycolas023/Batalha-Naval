@@ -21,6 +21,7 @@ public class CircularBoat : MonoBehaviour, IBoat {
         };
 
         HideInvalidPosition();
+        GameManager.Instance.boatPointsPlayer1 += points;
     }
 
     public void ShowInvalidPosition() {
