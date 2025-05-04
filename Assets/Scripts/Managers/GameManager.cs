@@ -8,7 +8,7 @@ public class GameManager : NetworkBehaviour {
     public const int GRID_SIZE = 10;
     public const float CELL_SIZE = 1.0f;
     public const float GRIDS_DISTANCE = 7.24f;
-    public const int MAX_BOAT_POINTS = 10;
+    public const int MAX_BOATS_SPAWNED = 5;
     public static GameManager Instance { get; private set; }
 
     [SerializeField] private Grid gridPlayer1;
@@ -27,12 +27,10 @@ public class GameManager : NetworkBehaviour {
 
     public GamePosition[,] gridArrayPlayer1 = new GamePosition[GRID_SIZE, GRID_SIZE];
     public bool[,] gridArrayPlayer1Occupied = new bool[GRID_SIZE, GRID_SIZE];
-    public int boatPointsPlayer1 = 0;
     private bool isPlayer1Ready = false;
 
     public GamePosition[,] gridArrayPlayer2 = new GamePosition[GRID_SIZE, GRID_SIZE];
     public bool[,] gridArrayPlayer2Occupied = new bool[GRID_SIZE, GRID_SIZE];
-    public int boatPointsPlayer2 = 0;
     private bool isPlayer2Ready = false;
 
     //----------------------------------------- Events --------------------------------------------------------
@@ -75,7 +73,7 @@ public class GameManager : NetworkBehaviour {
         if (Input.GetKeyDown(KeyCode.Space)) {
 
         }
-        //Mostra quais posições estão ocupadas
+        //Mostra quais posições estão ocupadas pelo player local
         // if (!IsGameStarted) return;
         // bool[,] gridArrayPlayerOccupied = localPlayerType == PlayerType.Player1 ? gridArrayPlayer1Occupied : gridArrayPlayer2Occupied;
         // GamePosition[,] gridArrayPlayer = localPlayerType == PlayerType.Player1 ? gridArrayPlayer1 : gridArrayPlayer2;

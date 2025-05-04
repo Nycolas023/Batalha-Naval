@@ -8,7 +8,8 @@ public interface IBoat {
     int[,] componetsGrid { get; set; }
     GameObject gameObject { get; }
     float rotation { get; set; }
-    int points { get; set; }
+    int placementLimit { get; set; }
+    string name { get; set; }
 
     void RemoveBoatFromGrid();
 

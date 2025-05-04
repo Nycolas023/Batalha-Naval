@@ -7,7 +7,7 @@ public class CircularBoat : MonoBehaviour, IBoat {
     GameObject IBoat.gameObject { get => gameObject; }
     public Vector3Int positonOnGrid { get; set; }
     public float rotation { get; set; }
-    public int points { get; set; } = 2;
+    public int placementLimit { get; set; } = 1;
 
     [SerializeField] private GameObject invalidPositionIndicator;
 
@@ -21,7 +21,6 @@ public class CircularBoat : MonoBehaviour, IBoat {
         };
 
         HideInvalidPosition();
-        GameManager.Instance.boatPointsPlayer1 += points;
     }
 
     public void ShowInvalidPosition() {
@@ -37,7 +36,6 @@ public class CircularBoat : MonoBehaviour, IBoat {
     }
 
     public void DestroyBoat() {
-        GameManager.Instance.boatPointsPlayer1 -= points;
         GameManager.Instance.localPlayerBoats.Remove(this);
         Destroy(gameObject);
     }

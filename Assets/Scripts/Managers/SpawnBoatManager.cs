@@ -1,13 +1,8 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class SpawnBoatManager : MonoBehaviour {
-
-    [SerializeField] private GameObject circularBoatPrefab;
-    [SerializeField] private GameObject lineBoatPrefab;
-    [SerializeField] private Button buttonSpawnCircularBoat;
-    [SerializeField] private Button buttonSpawnLineBoat;
-    [SerializeField] private Button testButton;
 
     public static SpawnBoatManager Instance { get; private set; }
 
@@ -22,26 +17,27 @@ public class SpawnBoatManager : MonoBehaviour {
     }
 
     private void Start() {
-        buttonSpawnCircularBoat.onClick.AddListener(() => SpawnBoat(circularBoatPrefab));
-        buttonSpawnLineBoat.onClick.AddListener(() => SpawnBoat(lineBoatPrefab));
-        testButton.onClick.AddListener(BoatDraggerManager.Instance.SetLoopActive);
-
         initialBoatPositionPlayer1 = new Vector3(8.62f, 0.6f, -6.3f);
         initialBoatPositionPlayer2 = new Vector3(-8.62f, 0.6f, -6.3f);
     }
 
-    private void SpawnBoat(GameObject boatPrefab) {
+    public void SpawnBoat(GameObject boatPrefab) {
         Vector3 initialPosition = GameManager.Instance.GetLocalPlayerType() ==
             GameManager.PlayerType.Player1 ? initialBoatPositionPlayer1 : initialBoatPositionPlayer2;
 
         GameObject boat = Instantiate(boatPrefab, initialPosition, Quaternion.identity);
         var boatComponent = boat.GetComponent<IBoat>();
 
-        var boatPoints = GameManager.Instance.GetLocalPlayerType() == GameManager.PlayerType.Player1 ?
-            GameManager.Instance.boatPointsPlayer1 : GameManager.Instance.boatPointsPlayer2;
+        List<IBoat> boats = GameManager.Instance.localPlayerBoats;
 
-        if (boatPoints + boatComponent.points > GameManager.MAX_BOAT_POINTS) {
+        if (IsBoatLimitReached(boatComponent, boats)) {
             Debug.Log("Max boat points reached!");
+            Destroy(boat);
+            return;
+        }
+
+        if (IsBoatPlacementLimitReached(boatComponent, boats)) {
+            Debug.Log("Cant Spawn more of this type of boat!");
             Destroy(boat);
             return;
         }
@@ -52,6 +48,17 @@ public class SpawnBoatManager : MonoBehaviour {
             GameManager.Instance.localPlayerBoats.Add(boat.GetComponent<IBoat>());
         }
 
+        SpawnBoatManagerUI.Instance.UpdateNumberOfBoatsToBePlaced(boatComponent);
         BoatDraggerManager.Instance.SetBoatInSpawn(boatComponent);
+    }
+    
+    private bool IsBoatLimitReached(IBoat boat, List<IBoat> localPlayerBoats) {
+        int numberOfThisBoatSpawned = localPlayerBoats.FindAll(b => b.name == boat.name).Count;
+        return numberOfThisBoatSpawned >= GameManager.MAX_BOATS_SPAWNED;
+    }
+
+    private bool IsBoatPlacementLimitReached(IBoat boat, List<IBoat> localPlayerBoats) {
+        int numberOfThisBoatSpawned = localPlayerBoats.FindAll(b => b.name == boat.name).Count;
+        return numberOfThisBoatSpawned >= boat.placementLimit;
     }
 }
