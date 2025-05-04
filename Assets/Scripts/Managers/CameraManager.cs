@@ -18,13 +18,21 @@ public class CameraManager : MonoBehaviour {
         player2CameraPosition = new Vector3(-gridXPosition, 12, -0.8f);
 
         mainCamera.transform.position = centerCameraPosition;
-        targetPosition = player1CameraPosition;
 
         mainCamera.transform.rotation = Quaternion.Euler(90, 0, 0);
     }
 
     private void Start() {
-        GameManager.Instance.OnChangePlayeblePlayerType += GamaManager_OnChangePlayablePlayerType;
+        GameManager.Instance.OnChangePlayablePlayerType += GamaManager_OnChangePlayablePlayerType;
+        GameManager.Instance.OnNetworkSpawned += GamaManager_OnNetworkSpawned;
+
+        if (GameManager.Instance.GetLocalPlayerType() == GameManager.PlayerType.Player1) {
+            targetPosition = player1CameraPosition;
+        } else if (GameManager.Instance.GetLocalPlayerType() == GameManager.PlayerType.Player2) {
+            targetPosition = player2CameraPosition;
+        } else {
+            targetPosition = centerCameraPosition;
+        }
     }
 
     private void Update() {
@@ -36,11 +44,21 @@ public class CameraManager : MonoBehaviour {
         }
     }
 
-    private void GamaManager_OnChangePlayablePlayerType(object sender, GameManager.OnChangePlayeblePlayerTypeEventArgs e) {
-        if (e.playerType == GameManager.Player.Player1) {
+    private void GamaManager_OnNetworkSpawned(object sender, GameManager.PlayerTypeEventArgs e) {
+        if (e.playerType == GameManager.PlayerType.Player1) {
             targetPosition = player1CameraPosition;
-        } else if (e.playerType == GameManager.Player.Player2) {
+        } else if (e.playerType == GameManager.PlayerType.Player2) {
             targetPosition = player2CameraPosition;
+        } else {
+            targetPosition = centerCameraPosition;
+        }
+    }
+
+    private void GamaManager_OnChangePlayablePlayerType(object sender, GameManager.PlayerTypeEventArgs e) {
+        if (e.playerType == GameManager.PlayerType.Player1) {
+            targetPosition = player2CameraPosition;
+        } else if (e.playerType == GameManager.PlayerType.Player2) {
+            targetPosition = player1CameraPosition;
         } else {
             targetPosition = centerCameraPosition;
         }

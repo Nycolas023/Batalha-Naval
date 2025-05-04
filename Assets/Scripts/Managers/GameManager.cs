@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
-public class GameManager : MonoBehaviour {
+public class GameManager : NetworkBehaviour {
 
     public const int GRID_SIZE = 10;
     public const float CELL_SIZE = 1.0f;
@@ -13,32 +13,39 @@ public class GameManager : MonoBehaviour {
 
     [SerializeField] private Grid gridPlayer1;
     [SerializeField] private Grid gridPlayer2;
-
-    public event EventHandler<OnChangePlayeblePlayerTypeEventArgs> OnChangePlayeblePlayerType;
-    public class OnChangePlayeblePlayerTypeEventArgs : EventArgs {
-        public Player playerType;
-    }
-
-    [SerializeField] private GameObject cellPrefab; // Prefab for the cell
-
-    public enum Player {
+    [SerializeField] private GameObject cellPrefab;
+    public enum PlayerType {
         None,
         Player1,
         Player2
     }
 
-    private Player localPlayerType;
-    private Player currentPlayablePlayerType;
+    private PlayerType localPlayerType;
+    private NetworkVariable<PlayerType> currentPlayablePlayerType = new NetworkVariable<PlayerType>(PlayerType.None);
 
     public GamePosition[,] gridArrayPlayer1 = new GamePosition[GRID_SIZE, GRID_SIZE];
     public bool[,] gridArrayPlayer1Occupied = new bool[GRID_SIZE, GRID_SIZE];
     public List<IBoat> boatsPlayer1 = new List<IBoat>();
     public int boatPointsPlayer1 = 0;
+    private bool isPlayer1Ready = false;
 
     public GamePosition[,] gridArrayPlayer2 = new GamePosition[GRID_SIZE, GRID_SIZE];
     public bool[,] gridArrayPlayer2Occupied = new bool[GRID_SIZE, GRID_SIZE];
     public List<IBoat> boatsPlayer2 = new List<IBoat>();
     public int boatPointsPlayer2 = 0;
+    private bool isPlayer2Ready = false;
+
+    //----------------------------------------- Events --------------------------------------------------------
+
+    public event EventHandler<PlayerTypeEventArgs> OnNetworkSpawned;
+    public event EventHandler<PlayerTypeEventArgs> OnChangePlayablePlayerType;
+    public class PlayerTypeEventArgs : EventArgs {
+        public PlayerType playerType;
+    }
+
+    //----------------------------------------- Events --------------------------------------------------------
+
+    public bool IsGameStarted = false;
 
     private void Awake() {
         if (Instance != null) {
@@ -47,37 +54,101 @@ public class GameManager : MonoBehaviour {
         Instance = this;
     }
 
-    private void Start() {
+    public override void OnNetworkSpawn() {
+        if (NetworkManager.Singleton.LocalClientId == 0) {
+            localPlayerType = PlayerType.Player1;
+        } else {
+            localPlayerType = PlayerType.Player2;
+        }
+        OnNetworkSpawned?.Invoke(this, new PlayerTypeEventArgs {
+            playerType = localPlayerType
+        });
+
         var gridXPosition = GRID_SIZE * CELL_SIZE / 2f + GRIDS_DISTANCE / 2f;
         InitializeGrid(gridArrayPlayer1, new Vector3(gridXPosition, 0, 0), gridPlayer1);
         InitializeGrid(gridArrayPlayer2, new Vector3(-gridXPosition, 0, 0), gridPlayer2);
-        localPlayerType = Player.Player1;
-        currentPlayablePlayerType = Player.Player1;
+
+        IsGameStarted = true;
     }
 
     private void Update() {
-        for (int x = 0; x < GRID_SIZE; x++) {
-            for (int z = 0; z < GRID_SIZE; z++) {
-                if (gridArrayPlayer1Occupied[x, z]) {
-                    gridArrayPlayer1[x, z].GetComponent<Renderer>().material.color = Color.red;
-                } else {
-                    gridArrayPlayer1[x, z].GetComponent<Renderer>().material.color = Color.white;
-                }
-            }
+        //Mostra quais posições estão ocupadas
+        // if (!IsGameStarted) return;
+        // bool[,] gridArrayPlayerOccupied = localPlayerType == PlayerType.Player1 ? gridArrayPlayer1Occupied : gridArrayPlayer2Occupied;
+        // GamePosition[,] gridArrayPlayer = localPlayerType == PlayerType.Player1 ? gridArrayPlayer1 : gridArrayPlayer2;
+        // for (int x = 0; x < GRID_SIZE; x++) {
+        //     for (int z = 0; z < GRID_SIZE; z++) {
+        //         if (gridArrayPlayerOccupied[x, z]) {
+        //             gridArrayPlayer[x, z].GetComponent<Renderer>().material.color = Color.red;
+        //         } else {
+        //             gridArrayPlayer[x, z].GetComponent<Renderer>().material.color = Color.white;
+        //         }
+        //     }
+        // }
+    }
+
+    [Rpc(SendTo.Server)]
+    public void OnChangePlayersReadyRpc() {
+        if (isPlayer1Ready && isPlayer2Ready) {
+            Debug.Log("Game started!");
+            currentPlayablePlayerType.Value = PlayerType.Player1;
+            TriggerChangePlayablePlayerTypeRpc(currentPlayablePlayerType.Value);
         }
     }
 
-    public void ChangeColor(GamePosition gamePosition) {
-        gamePosition.GetComponent<Renderer>().material.color =
-            gamePosition.GetComponent<Renderer>().material.color == Color.red ? Color.blue : Color.red;
-        localPlayerType = localPlayerType == Player.Player1 ? Player.Player2 : Player.Player1;
-        currentPlayablePlayerType = localPlayerType == Player.Player1 ? Player.Player2 : Player.Player1;
-        Invoke("ChangeCameraPosition", 0.5f);
+    [Rpc(SendTo.ClientsAndHost)]
+    public void TriggerChangePlayablePlayerTypeRpc(PlayerType playerType) {
+        OnChangePlayablePlayerType?.Invoke(this, new PlayerTypeEventArgs {
+            playerType = playerType
+        });
     }
 
-    public void ChangeCameraPosition() {
-        OnChangePlayeblePlayerType?.Invoke(this, new OnChangePlayeblePlayerTypeEventArgs {
-            playerType = currentPlayablePlayerType
+    [Rpc(SendTo.Server)]
+    public void OnClickGamePositionRpc(int x, int z, PlayerType playerType) {
+        if (!isPlayer1Ready || !isPlayer2Ready) {
+            Debug.Log("Game not started yet!");
+            return;
+        }
+
+        if (playerType != currentPlayablePlayerType.Value) {
+            Debug.Log("Not your turn!");
+            return;
+        }
+
+        GameObject gamePosition = playerType == PlayerType.Player1 ?
+            gridArrayPlayer2[x, z].gameObject :
+            gridArrayPlayer1[x, z].gameObject;
+
+        if (gamePosition.GetComponent<GamePosition>().hasBeenShot) {
+            Debug.Log("Position was already shot!");
+            return;
+        } else {
+            TriggerChangeGamePositionColorRpc(x, z, playerType);
+        }
+
+        currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
+        ChangeCameraPositionRpc(currentPlayablePlayerType.Value);
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void TriggerChangeGamePositionColorRpc(int x, int z, PlayerType playerType) {
+        GameObject gamePosition = playerType == PlayerType.Player1 ?
+            gridArrayPlayer2[x, z].gameObject :
+            gridArrayPlayer1[x, z].gameObject;
+        bool[,] gridArrayPlayerOccupied = playerType == PlayerType.Player1 ? gridArrayPlayer2Occupied : gridArrayPlayer1Occupied;
+
+        gamePosition.GetComponent<GamePosition>().SetHasBeenShot(true);
+        if (gridArrayPlayerOccupied[x, z]) {
+            gamePosition.GetComponent<Renderer>().material.color = Color.red;
+        } else {
+            gamePosition.GetComponent<Renderer>().material.color = Color.blue;
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void ChangeCameraPositionRpc(PlayerType playerType) {
+        OnChangePlayablePlayerType?.Invoke(this, new PlayerTypeEventArgs {
+            playerType = playerType
         });
     }
 
@@ -87,6 +158,7 @@ public class GameManager : MonoBehaviour {
         for (int x = 0; x < GRID_SIZE; x++) {
             for (int y = 0; y < GRID_SIZE; y++) {
                 GameObject cell = Instantiate(cellPrefab);
+                cell.GetComponent<GamePosition>().SetPosition(x, y);
                 cell.transform.SetParent(grid.transform);
                 cell.transform.localPosition = new Vector3(
                     x * CELL_SIZE + (CELL_SIZE / 2f), 0, y * CELL_SIZE + (CELL_SIZE / 2f)
@@ -111,12 +183,15 @@ public class GameManager : MonoBehaviour {
         int[,] boatGrid = boat.componetsGrid;
         int xCenter = boat.xCenter;
         int zCenter = boat.zCenter;
+        bool[,] gridArrayOccupied = localPlayerType == PlayerType.Player1 ? gridArrayPlayer1Occupied : gridArrayPlayer2Occupied;
+
         for (int r = 0; r < boat.rotation / 90; r++) {
             boatGrid = new Utils().RotateMatrix(boatGrid);
             var temp = xCenter;
             xCenter = zCenter;
             zCenter = temp;
         }
+
         for (int x = 0; x < boatGrid.GetLength(1); x++) {
             for (int z = 0; z < boatGrid.GetLength(0); z++) {
                 if (boatGrid[z, x] == 0) continue;
@@ -129,7 +204,7 @@ public class GameManager : MonoBehaviour {
                     Debug.Log("Boat is out of grid: " + gridPosition);
                     return false;
                 }
-                if (gridArrayPlayer1Occupied[gridPosition.x, gridPosition.z]) {
+                if (gridArrayOccupied[gridPosition.x, gridPosition.z]) {
                     Debug.Log("Boat position is occupied: " + gridPosition);
                     return false;
                 }
@@ -143,26 +218,32 @@ public class GameManager : MonoBehaviour {
         int[,] boatGrid = boat.componetsGrid;
         int xCenter = boat.xCenter;
         int zCenter = boat.zCenter;
+
         for (int r = 0; r < boat.rotation / 90; r++) {
             boatGrid = new Utils().RotateMatrix(boatGrid);
             var temp = xCenter;
             xCenter = zCenter;
             zCenter = temp;
         }
+
         for (int x = 0; x < boatGrid.GetLength(1); x++) {
             for (int z = 0; z < boatGrid.GetLength(0); z++) {
                 if (boatGrid[z, x] == 0) continue;
-                Vector3Int gridPosition = new Vector3Int(
+                TriggerAddBoatFromGridRpc(
                     x - xCenter + boat.positonOnGrid.x,
-                    0,
-                    z - zCenter + boat.positonOnGrid.z
+                    z - zCenter + boat.positonOnGrid.z,
+                    localPlayerType
                 );
-                if (localPlayerType == Player.Player1) {
-                    gridArrayPlayer1Occupied[gridPosition.x, gridPosition.z] = true;
-                } else {
-                    gridArrayPlayer2Occupied[gridPosition.x, gridPosition.z] = true;
-                }
             }
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void TriggerAddBoatFromGridRpc(int x, int z, PlayerType playerType) {
+        if (playerType == PlayerType.Player1) {
+            gridArrayPlayer1Occupied[x, z] = true;
+        } else {
+            gridArrayPlayer2Occupied[x, z] = true;
         }
     }
 
@@ -170,26 +251,46 @@ public class GameManager : MonoBehaviour {
         int[,] boatGrid = boat.componetsGrid;
         int xCenter = boat.xCenter;
         int zCenter = boat.zCenter;
+
         for (int r = 0; r < boat.rotation / 90; r++) {
             boatGrid = new Utils().RotateMatrix(boatGrid);
             var temp = xCenter;
             xCenter = zCenter;
             zCenter = temp;
         }
+
         for (int x = 0; x < boatGrid.GetLength(1); x++) {
             for (int z = 0; z < boatGrid.GetLength(0); z++) {
                 if (boatGrid[z, x] == 0) continue;
-                Vector3Int gridPosition = new Vector3Int(
+                TriggerRemoveBoatFromGridRpc(
                     x - xCenter + boat.positonOnGrid.x,
-                    0,
-                    z - zCenter + boat.positonOnGrid.z
+                    z - zCenter + boat.positonOnGrid.z,
+                    localPlayerType
                 );
-                if (localPlayerType == Player.Player1) {
-                    gridArrayPlayer1Occupied[gridPosition.x, gridPosition.z] = false;
-                } else {
-                    gridArrayPlayer2Occupied[gridPosition.x, gridPosition.z] = false;
-                }
             }
         }
     }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void TriggerRemoveBoatFromGridRpc(int x, int z, PlayerType playerType) {
+        if (playerType == PlayerType.Player1) {
+            gridArrayPlayer1Occupied[x, z] = false;
+        } else {
+            gridArrayPlayer2Occupied[x, z] = false;
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SetIsPlayer1ReadyRpc(bool isReady) {
+        isPlayer1Ready = isReady;
+        OnChangePlayersReadyRpc();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SetIsPlayer2ReadyRpc(bool isReady) {
+        isPlayer2Ready = isReady;
+        OnChangePlayersReadyRpc();
+    }
+
+    public PlayerType GetLocalPlayerType() { return localPlayerType; }
 }

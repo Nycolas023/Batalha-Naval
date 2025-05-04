@@ -11,9 +11,8 @@ public class SpawnBoatManager : MonoBehaviour {
 
     public static SpawnBoatManager Instance { get; private set; }
 
-    
-
-    public Vector3 initialBoatPosition = new Vector3(8.62f, 0.6f, -6.3f);
+    public Vector3 initialBoatPositionPlayer1;
+    public Vector3 initialBoatPositionPlayer2;
 
     private void Awake() {
         if (Instance != null) {
@@ -26,19 +25,33 @@ public class SpawnBoatManager : MonoBehaviour {
         buttonSpawnCircularBoat.onClick.AddListener(() => SpawnBoat(circularBoatPrefab));
         buttonSpawnLineBoat.onClick.AddListener(() => SpawnBoat(lineBoatPrefab));
         testButton.onClick.AddListener(BoatDraggerManager.Instance.SetLoopActive);
+
+        initialBoatPositionPlayer1 = new Vector3(8.62f, 0.6f, -6.3f);
+        initialBoatPositionPlayer2 = new Vector3(-8.62f, 0.6f, -6.3f);
     }
 
     private void SpawnBoat(GameObject boatPrefab) {
-        GameObject boat = Instantiate(boatPrefab, initialBoatPosition, Quaternion.identity);
+        Vector3 initialPosition = GameManager.Instance.GetLocalPlayerType() ==
+            GameManager.PlayerType.Player1 ? initialBoatPositionPlayer1 : initialBoatPositionPlayer2;
+
+        GameObject boat = Instantiate(boatPrefab, initialPosition, Quaternion.identity);
         var boatComponent = boat.GetComponent<IBoat>();
 
-        if (GameManager.Instance.boatPointsPlayer1 + boatComponent.points > GameManager.MAX_BOAT_POINTS) {
+        var boatPoints = GameManager.Instance.GetLocalPlayerType() == GameManager.PlayerType.Player1 ?
+            GameManager.Instance.boatPointsPlayer1 : GameManager.Instance.boatPointsPlayer2;
+
+        if (boatPoints + boatComponent.points > GameManager.MAX_BOAT_POINTS) {
             Debug.Log("Max boat points reached!");
             Destroy(boat);
             return;
         }
 
+        if (GameManager.Instance.GetLocalPlayerType() == GameManager.PlayerType.Player1) {
+            GameManager.Instance.boatsPlayer1.Add(boat.GetComponent<IBoat>());
+        } else {
+            GameManager.Instance.boatsPlayer2.Add(boat.GetComponent<IBoat>());
+        }
+
         BoatDraggerManager.Instance.SetBoatInSpawn(boatComponent);
-        GameManager.Instance.boatsPlayer1.Add(boat.GetComponent<IBoat>());
     }
 }

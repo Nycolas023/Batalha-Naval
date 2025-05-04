@@ -1,17 +1,20 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class GamePosition : MonoBehaviour {
-    public int x { get; private set; }
-    public int y { get; private set; }
+    public int x;
+    public int y;
+    public bool hasBeenShot = false;
 
     private void OnMouseDown() {
-        GameManager.Instance.ChangeColor(this);
+        GameManager.Instance.OnClickGamePositionRpc(x, y, GameManager.Instance.GetLocalPlayerType());
     }
 
     public void SetPosition(int x, int y) {
         this.x = x;
         this.y = y;
+    }
+
+    public void SetHasBeenShot(bool hasBeenShot) {
+        this.hasBeenShot = hasBeenShot;
     }
 }

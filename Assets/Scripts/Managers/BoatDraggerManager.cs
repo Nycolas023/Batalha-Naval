@@ -10,7 +10,7 @@ public class BoatDraggerManager : MonoBehaviour {
 
     private IBoat boatInSpawn;
 
-    private bool isDraggingBoatActive = false;
+    private bool isDraggingBoatActive = true;
 
     private void Awake() {
         if (Instance != null) {
@@ -29,7 +29,7 @@ public class BoatDraggerManager : MonoBehaviour {
         RaycastHit defaultHit;
         InputManager.Instance.GetGameObjectBeaingIntercepted(out defaultHit);
 
-        Vector3 initialBoatPosition = SpawnBoatManager.Instance.initialBoatPosition;
+        Vector3 initialBoatPosition = SpawnBoatManager.Instance.initialBoatPositionPlayer1;
 
         if (loopActive) {
             Debug.Log("Loop is active! " + GameManager.Instance.boatsPlayer1.Count);
