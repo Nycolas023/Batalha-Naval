@@ -14,6 +14,7 @@ public class GameManager : NetworkBehaviour {
     [SerializeField] private Grid gridPlayer1;
     [SerializeField] private Grid gridPlayer2;
     [SerializeField] private GameObject cellPrefab;
+    [SerializeField] private ParticleSystem explosionEffectPrefab;
     public enum PlayerType {
         None,
         Player1,
@@ -21,17 +22,16 @@ public class GameManager : NetworkBehaviour {
     }
 
     private PlayerType localPlayerType;
+    public List<IBoat> localPlayerBoats = new List<IBoat>();
     private NetworkVariable<PlayerType> currentPlayablePlayerType = new NetworkVariable<PlayerType>(PlayerType.None);
 
     public GamePosition[,] gridArrayPlayer1 = new GamePosition[GRID_SIZE, GRID_SIZE];
     public bool[,] gridArrayPlayer1Occupied = new bool[GRID_SIZE, GRID_SIZE];
-    public List<IBoat> boatsPlayer1 = new List<IBoat>();
     public int boatPointsPlayer1 = 0;
     private bool isPlayer1Ready = false;
 
     public GamePosition[,] gridArrayPlayer2 = new GamePosition[GRID_SIZE, GRID_SIZE];
     public bool[,] gridArrayPlayer2Occupied = new bool[GRID_SIZE, GRID_SIZE];
-    public List<IBoat> boatsPlayer2 = new List<IBoat>();
     public int boatPointsPlayer2 = 0;
     private bool isPlayer2Ready = false;
 
@@ -72,6 +72,9 @@ public class GameManager : NetworkBehaviour {
     }
 
     private void Update() {
+        if (Input.GetKeyDown(KeyCode.Space)) {
+
+        }
         //Mostra quais posições estão ocupadas
         // if (!IsGameStarted) return;
         // bool[,] gridArrayPlayerOccupied = localPlayerType == PlayerType.Player1 ? gridArrayPlayer1Occupied : gridArrayPlayer2Occupied;
@@ -127,7 +130,7 @@ public class GameManager : NetworkBehaviour {
         }
 
         currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
-        ChangeCameraPositionRpc(currentPlayablePlayerType.Value);
+        Invoke(nameof(ChangeCameraPositionRpc), 0.5f);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -140,15 +143,21 @@ public class GameManager : NetworkBehaviour {
         gamePosition.GetComponent<GamePosition>().SetHasBeenShot(true);
         if (gridArrayPlayerOccupied[x, z]) {
             gamePosition.GetComponent<Renderer>().material.color = Color.red;
+
+            var gameObject = Instantiate(explosionEffectPrefab, gamePosition.transform.position, Quaternion.identity);
+            gameObject.Play();
+            Destroy(gameObject.gameObject, 2f);
+
+            CheckIfBoatIsDestroyedRpc(x, z, playerType);
         } else {
             gamePosition.GetComponent<Renderer>().material.color = Color.blue;
         }
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    public void ChangeCameraPositionRpc(PlayerType playerType) {
+    public void ChangeCameraPositionRpc() {
         OnChangePlayablePlayerType?.Invoke(this, new PlayerTypeEventArgs {
-            playerType = playerType
+            playerType = currentPlayablePlayerType.Value
         });
     }
 
@@ -185,13 +194,6 @@ public class GameManager : NetworkBehaviour {
         int zCenter = boat.zCenter;
         bool[,] gridArrayOccupied = localPlayerType == PlayerType.Player1 ? gridArrayPlayer1Occupied : gridArrayPlayer2Occupied;
 
-        for (int r = 0; r < boat.rotation / 90; r++) {
-            boatGrid = new Utils().RotateMatrix(boatGrid);
-            var temp = xCenter;
-            xCenter = zCenter;
-            zCenter = temp;
-        }
-
         for (int x = 0; x < boatGrid.GetLength(1); x++) {
             for (int z = 0; z < boatGrid.GetLength(0); z++) {
                 if (boatGrid[z, x] == 0) continue;
@@ -219,21 +221,21 @@ public class GameManager : NetworkBehaviour {
         int xCenter = boat.xCenter;
         int zCenter = boat.zCenter;
 
-        for (int r = 0; r < boat.rotation / 90; r++) {
-            boatGrid = new Utils().RotateMatrix(boatGrid);
-            var temp = xCenter;
-            xCenter = zCenter;
-            zCenter = temp;
-        }
-
         for (int x = 0; x < boatGrid.GetLength(1); x++) {
             for (int z = 0; z < boatGrid.GetLength(0); z++) {
                 if (boatGrid[z, x] == 0) continue;
+                int gridXPosition = x - xCenter + boat.positonOnGrid.x;
+                int gridZPosition = z - zCenter + boat.positonOnGrid.z;
                 TriggerAddBoatFromGridRpc(
-                    x - xCenter + boat.positonOnGrid.x,
-                    z - zCenter + boat.positonOnGrid.z,
+                    gridXPosition,
+                    gridZPosition,
                     localPlayerType
                 );
+                if (localPlayerType == PlayerType.Player1) {
+                    gridArrayPlayer1[gridXPosition, gridZPosition].boatOnPosition = boat;
+                } else {
+                    gridArrayPlayer2[gridXPosition, gridZPosition].boatOnPosition = boat;
+                }
             }
         }
     }
@@ -252,13 +254,6 @@ public class GameManager : NetworkBehaviour {
         int xCenter = boat.xCenter;
         int zCenter = boat.zCenter;
 
-        for (int r = 0; r < boat.rotation / 90; r++) {
-            boatGrid = new Utils().RotateMatrix(boatGrid);
-            var temp = xCenter;
-            xCenter = zCenter;
-            zCenter = temp;
-        }
-
         for (int x = 0; x < boatGrid.GetLength(1); x++) {
             for (int z = 0; z < boatGrid.GetLength(0); z++) {
                 if (boatGrid[z, x] == 0) continue;
@@ -267,6 +262,11 @@ public class GameManager : NetworkBehaviour {
                     z - zCenter + boat.positonOnGrid.z,
                     localPlayerType
                 );
+                if (localPlayerType == PlayerType.Player1) {
+                    gridArrayPlayer1[x, z].boatOnPosition = null;
+                } else {
+                    gridArrayPlayer2[x, z].boatOnPosition = null;
+                }
             }
         }
     }
@@ -277,6 +277,31 @@ public class GameManager : NetworkBehaviour {
             gridArrayPlayer1Occupied[x, z] = false;
         } else {
             gridArrayPlayer2Occupied[x, z] = false;
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void CheckIfBoatIsDestroyedRpc(int xIndex, int zIndex, PlayerType playerType) {
+        GamePosition[,] gridArrayPlayer = playerType == PlayerType.Player1 ? gridArrayPlayer2 : gridArrayPlayer1;
+        GamePosition gamePosition = gridArrayPlayer[xIndex, zIndex];
+        if (gamePosition.boatOnPosition != null) {
+            IBoat boat = gamePosition.boatOnPosition;
+            int[,] boatGrid = boat.componetsGrid;
+            int xCenter = boat.xCenter;
+            int zCenter = boat.zCenter;
+
+            for (int x = 0; x < boatGrid.GetLength(1); x++) {
+                for (int z = 0; z < boatGrid.GetLength(0); z++) {
+                    if (boatGrid[z, x] == 0) continue;
+                    var gridXPosition = x - xCenter + boat.positonOnGrid.x;
+                    var gridZPosition = z - zCenter + boat.positonOnGrid.z;
+                    if (!gridArrayPlayer[gridXPosition, gridZPosition].hasBeenShot) {
+                        Debug.Log("Boat not destroyed!");
+                        return;
+                    }
+                }
+            }
+            Debug.Log("Boat destroyed!");
         }
     }
 

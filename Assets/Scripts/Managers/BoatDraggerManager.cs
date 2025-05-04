@@ -32,7 +32,7 @@ public class BoatDraggerManager : MonoBehaviour {
         Vector3 initialBoatPosition = SpawnBoatManager.Instance.initialBoatPositionPlayer1;
 
         if (loopActive) {
-            Debug.Log("Loop is active! " + GameManager.Instance.boatsPlayer1.Count);
+            Debug.Log("Loop is active! " + GameManager.Instance.localPlayerBoats.Count);
         }
 
         if (!isDraggingBoatActive) {
@@ -100,6 +100,11 @@ public class BoatDraggerManager : MonoBehaviour {
                     0
                 );
                 currentDraggedObject.rotation = rotation;
+
+                currentDraggedObject.componetsGrid = new Utils().RotateMatrix(currentDraggedObject.componetsGrid);
+                var temp = currentDraggedObject.xCenter;
+                currentDraggedObject.xCenter = currentDraggedObject.zCenter;
+                currentDraggedObject.zCenter = temp;
             }
         }
     }

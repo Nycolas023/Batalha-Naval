@@ -38,7 +38,7 @@ public class CircularBoat : MonoBehaviour, IBoat {
 
     public void DestroyBoat() {
         GameManager.Instance.boatPointsPlayer1 -= points;
-        GameManager.Instance.boatsPlayer1.Remove(this);
+        GameManager.Instance.localPlayerBoats.Remove(this);
         Destroy(gameObject);
     }
 }

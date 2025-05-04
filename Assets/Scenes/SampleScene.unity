@@ -1094,6 +1094,7 @@ MonoBehaviour:
   gridPlayer1: {fileID: 451579956}
   gridPlayer2: {fileID: 1281750179}
   cellPrefab: {fileID: 8977019371245407808, guid: a2061d2962e319f418050edcfc018cf9, type: 3}
+  explosionEffectPrefab: {fileID: 7659952563375193161, guid: 913eb596252703e499948ee5a667a917, type: 3}
   boatPointsPlayer1: 0
   boatPointsPlayer2: 0
   IsGameStarted: 0

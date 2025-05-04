@@ -4,6 +4,7 @@ public class GamePosition : MonoBehaviour {
     public int x;
     public int y;
     public bool hasBeenShot = false;
+    public IBoat boatOnPosition = null;
 
     private void OnMouseDown() {
         GameManager.Instance.OnClickGamePositionRpc(x, y, GameManager.Instance.GetLocalPlayerType());

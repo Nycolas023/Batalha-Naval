@@ -47,9 +47,9 @@ public class SpawnBoatManager : MonoBehaviour {
         }
 
         if (GameManager.Instance.GetLocalPlayerType() == GameManager.PlayerType.Player1) {
-            GameManager.Instance.boatsPlayer1.Add(boat.GetComponent<IBoat>());
+            GameManager.Instance.localPlayerBoats.Add(boat.GetComponent<IBoat>());
         } else {
-            GameManager.Instance.boatsPlayer2.Add(boat.GetComponent<IBoat>());
+            GameManager.Instance.localPlayerBoats.Add(boat.GetComponent<IBoat>());
         }
 
         BoatDraggerManager.Instance.SetBoatInSpawn(boatComponent);
