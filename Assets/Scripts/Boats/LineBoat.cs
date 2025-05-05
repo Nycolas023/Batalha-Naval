@@ -9,7 +9,7 @@ public class LineBoat : MonoBehaviour, IBoat {
     GameObject IBoat.gameObject { get => gameObject; }
     public Vector3Int positonOnGrid { get; set; }
     public float rotation { get; set; }
-    public int points { get; set; } = 1;
+    public int placementLimit { get; set; } = 1;
 
     [SerializeField] private GameObject invalidPositionIndicator;
 
@@ -44,8 +44,7 @@ public class LineBoat : MonoBehaviour, IBoat {
     }
 
     public void DestroyBoat() {
-        GameManager.Instance.boatPointsPlayer1 -= points;
-        GameManager.Instance.boatsPlayer1.Remove(this);
+        GameManager.Instance.localPlayerBoats.Remove(this);
         Destroy(gameObject);
     }
 }
