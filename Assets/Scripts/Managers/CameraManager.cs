@@ -13,7 +13,7 @@ public class CameraManager : MonoBehaviour {
     private Vector3 player2CameraPosition;
 
     private void Awake() {
-        var gridXPosition = GameManager.GRID_SIZE * GameManager.CELL_SIZE / 2f + GameManager.GRIDS_DISTANCE / 2f;
+        var gridXPosition = GameManager.GRID_WIDTH * GameManager.CELL_SIZE / 2f + GameManager.GRIDS_DISTANCE / 2f;
         player1CameraPosition = new Vector3(gridXPosition, 12, -0.8f);
         player2CameraPosition = new Vector3(-gridXPosition, 12, -0.8f);
 

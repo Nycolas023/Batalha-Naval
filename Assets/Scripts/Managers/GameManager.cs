@@ -5,7 +5,8 @@ using UnityEngine;
 
 public class GameManager : NetworkBehaviour {
 
-    public const int GRID_SIZE = 10;
+    public const int GRID_WIDTH = 10;
+    public const int GRID_HEIGHT = 10;
     public const float CELL_SIZE = 1.0f;
     public const float GRIDS_DISTANCE = 7.24f;
     public const int MAX_BOATS_SPAWNED = 5;
@@ -25,12 +26,10 @@ public class GameManager : NetworkBehaviour {
     public List<IBoat> localPlayerBoats = new List<IBoat>();
     private NetworkVariable<PlayerType> currentPlayablePlayerType = new NetworkVariable<PlayerType>(PlayerType.None);
 
-    public GamePosition[,] gridArrayPlayer1 = new GamePosition[GRID_SIZE, GRID_SIZE];
-    public bool[,] gridArrayPlayer1Occupied = new bool[GRID_SIZE, GRID_SIZE];
+    public GamePosition[,] gridArrayPlayer1 = new GamePosition[GRID_WIDTH, GRID_HEIGHT];
     private bool isPlayer1Ready = false;
 
-    public GamePosition[,] gridArrayPlayer2 = new GamePosition[GRID_SIZE, GRID_SIZE];
-    public bool[,] gridArrayPlayer2Occupied = new bool[GRID_SIZE, GRID_SIZE];
+    public GamePosition[,] gridArrayPlayer2 = new GamePosition[GRID_WIDTH, GRID_HEIGHT];
     private bool isPlayer2Ready = false;
 
     //----------------------------------------- Events --------------------------------------------------------
@@ -62,7 +61,7 @@ public class GameManager : NetworkBehaviour {
             playerType = localPlayerType
         });
 
-        var gridXPosition = GRID_SIZE * CELL_SIZE / 2f + GRIDS_DISTANCE / 2f;
+        var gridXPosition = GRID_WIDTH * CELL_SIZE / 2f + GRIDS_DISTANCE / 2f;
         InitializeGrid(gridArrayPlayer1, new Vector3(gridXPosition, 0, 0), gridPlayer1);
         InitializeGrid(gridArrayPlayer2, new Vector3(-gridXPosition, 0, 0), gridPlayer2);
 
@@ -133,13 +132,11 @@ public class GameManager : NetworkBehaviour {
 
     [Rpc(SendTo.ClientsAndHost)]
     public void TriggerChangeGamePositionColorRpc(int x, int z, PlayerType playerType) {
-        GameObject gamePosition = playerType == PlayerType.Player1 ?
-            gridArrayPlayer2[x, z].gameObject :
-            gridArrayPlayer1[x, z].gameObject;
-        bool[,] gridArrayPlayerOccupied = playerType == PlayerType.Player1 ? gridArrayPlayer2Occupied : gridArrayPlayer1Occupied;
+        GamePosition[,] gridArrayPlayer = playerType == PlayerType.Player1 ? gridArrayPlayer2 : gridArrayPlayer1;
+        GamePosition gamePosition = gridArrayPlayer[x, z];
 
         gamePosition.GetComponent<GamePosition>().SetHasBeenShot(true);
-        if (gridArrayPlayerOccupied[x, z]) {
+        if (gridArrayPlayer[x, z].isOccupied) {
             gamePosition.GetComponent<Renderer>().material.color = Color.red;
 
             var gameObject = Instantiate(explosionEffectPrefab, gamePosition.transform.position, Quaternion.identity);
@@ -147,6 +144,7 @@ public class GameManager : NetworkBehaviour {
             Destroy(gameObject.gameObject, 2f);
 
             CheckIfBoatIsDestroyedRpc(x, z, playerType);
+            CheckWinnerRpc();
         } else {
             gamePosition.GetComponent<Renderer>().material.color = Color.blue;
         }
@@ -162,8 +160,14 @@ public class GameManager : NetworkBehaviour {
     public void InitializeGrid(GamePosition[,] gridArray, Vector3 initialPosition, Grid grid) {
         initialPosition = findInitialPositionToRender(initialPosition);
         grid.transform.position = initialPosition;
-        for (int x = 0; x < GRID_SIZE; x++) {
-            for (int y = 0; y < GRID_SIZE; y++) {
+        //Chage box collider size to match the grid size
+        grid.GetComponent<BoxCollider>().size = new Vector3(
+            GRID_WIDTH * CELL_SIZE,
+            grid.GetComponent<BoxCollider>().size.y,
+            GRID_HEIGHT * CELL_SIZE
+        );
+        for (int x = 0; x < gridArray.GetLength(0); x++) {
+            for (int y = 0; y < gridArray.GetLength(1); y++) {
                 GameObject cell = Instantiate(cellPrefab);
                 cell.GetComponent<GamePosition>().SetPosition(x, y);
                 cell.transform.SetParent(grid.transform);
@@ -176,7 +180,7 @@ public class GameManager : NetworkBehaviour {
     }
 
     private Vector3 findInitialPositionToRender(Vector3 initialPosition) {
-        Vector3 offset = new Vector3(GRID_SIZE / 2f * CELL_SIZE, 0, GRID_SIZE / 2f * CELL_SIZE);
+        Vector3 offset = new Vector3(GRID_WIDTH / 2f * CELL_SIZE, 0, GRID_HEIGHT / 2f * CELL_SIZE);
         Vector3 newInitialPosition = new Vector3(
             initialPosition.x - offset.x,
             0,
@@ -190,7 +194,7 @@ public class GameManager : NetworkBehaviour {
         int[,] boatGrid = boat.componetsGrid;
         int xCenter = boat.xCenter;
         int zCenter = boat.zCenter;
-        bool[,] gridArrayOccupied = localPlayerType == PlayerType.Player1 ? gridArrayPlayer1Occupied : gridArrayPlayer2Occupied;
+        GamePosition[,] gridArray = localPlayerType == PlayerType.Player1 ? gridArrayPlayer1 : gridArrayPlayer2;
 
         for (int x = 0; x < boatGrid.GetLength(1); x++) {
             for (int z = 0; z < boatGrid.GetLength(0); z++) {
@@ -200,11 +204,11 @@ public class GameManager : NetworkBehaviour {
                     0,
                     z - zCenter + boat.positonOnGrid.z
                 );
-                if (gridPosition.x < 0 || gridPosition.x >= GRID_SIZE || gridPosition.z < 0 || gridPosition.z >= GRID_SIZE) {
+                if (gridPosition.x < 0 || gridPosition.x >= GRID_WIDTH || gridPosition.z < 0 || gridPosition.z >= GRID_HEIGHT) {
                     Debug.Log("Boat is out of grid: " + gridPosition);
                     return false;
                 }
-                if (gridArrayOccupied[gridPosition.x, gridPosition.z]) {
+                if (gridArray[gridPosition.x, gridPosition.z].isOccupied) {
                     Debug.Log("Boat position is occupied: " + gridPosition);
                     return false;
                 }
@@ -241,9 +245,9 @@ public class GameManager : NetworkBehaviour {
     [Rpc(SendTo.ClientsAndHost)]
     public void TriggerAddBoatFromGridRpc(int x, int z, PlayerType playerType) {
         if (playerType == PlayerType.Player1) {
-            gridArrayPlayer1Occupied[x, z] = true;
+            gridArrayPlayer1[x, z].isOccupied = true;
         } else {
-            gridArrayPlayer2Occupied[x, z] = true;
+            gridArrayPlayer2[x, z].isOccupied = true;
         }
     }
 
@@ -272,9 +276,9 @@ public class GameManager : NetworkBehaviour {
     [Rpc(SendTo.ClientsAndHost)]
     public void TriggerRemoveBoatFromGridRpc(int x, int z, PlayerType playerType) {
         if (playerType == PlayerType.Player1) {
-            gridArrayPlayer1Occupied[x, z] = false;
+            gridArrayPlayer1[x, z].isOccupied = false;
         } else {
-            gridArrayPlayer2Occupied[x, z] = false;
+            gridArrayPlayer2[x, z].isOccupied = false;
         }
     }
 
@@ -294,7 +298,6 @@ public class GameManager : NetworkBehaviour {
                     var gridXPosition = x - xCenter + boat.positonOnGrid.x;
                     var gridZPosition = z - zCenter + boat.positonOnGrid.z;
                     if (!gridArrayPlayer[gridXPosition, gridZPosition].hasBeenShot) {
-                        Debug.Log("Boat not destroyed!");
                         return;
                     }
                 }
@@ -313,6 +316,31 @@ public class GameManager : NetworkBehaviour {
     public void SetIsPlayer2ReadyRpc(bool isReady) {
         isPlayer2Ready = isReady;
         OnChangePlayersReadyRpc();
+    }
+
+    [Rpc(SendTo.Server)]
+    public void CheckWinnerRpc() {
+        if (CheckGridForWinner(gridArrayPlayer1)) {
+            OnMatchWinnerRpc(PlayerType.Player2);
+        } else if (CheckGridForWinner(gridArrayPlayer2)) {
+            OnMatchWinnerRpc(PlayerType.Player1);
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void OnMatchWinnerRpc(PlayerType playerType) {
+        if (IsHost) currentPlayablePlayerType.Value = PlayerType.None;
+        Debug.Log("Winner: " + playerType);
+        TriggerChangePlayablePlayerTypeRpc(playerType);
+    }
+
+    private bool CheckGridForWinner(GamePosition[,] gridArray) {
+        for (int x = 0; x < GRID_WIDTH; x++) {
+            for (int z = 0; z < GRID_HEIGHT; z++) {
+                if (gridArray[x, z].isOccupied && !gridArray[x, z].hasBeenShot) return false;
+            }
+        }
+        return true;
     }
 
     public PlayerType GetLocalPlayerType() { return localPlayerType; }

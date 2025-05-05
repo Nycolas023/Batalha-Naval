@@ -4,6 +4,7 @@ public class GamePosition : MonoBehaviour {
     public int x;
     public int y;
     public bool hasBeenShot = false;
+    public bool isOccupied = false;
     public IBoat boatOnPosition = null;
 
     private void OnMouseDown() {
