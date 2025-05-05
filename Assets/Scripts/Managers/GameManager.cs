@@ -40,6 +40,7 @@ public class GameManager : NetworkBehaviour {
         public PlayerType playerType;
     }
     public event EventHandler OnGameStart;
+    public event EventHandler<PlayerTypeEventArgs> OnGameWin;
 
     //----------------------------------------- Events --------------------------------------------------------
 
@@ -343,6 +344,9 @@ public class GameManager : NetworkBehaviour {
     public void OnMatchWinnerRpc(PlayerType playerType) {
         if (IsHost) currentPlayablePlayerType.Value = PlayerType.None;
         Debug.Log("Winner: " + playerType);
+        OnGameWin?.Invoke(this, new PlayerTypeEventArgs {
+            playerType = playerType
+        });
         TriggerChangePlayablePlayerTypeRpc(playerType);
     }
 
