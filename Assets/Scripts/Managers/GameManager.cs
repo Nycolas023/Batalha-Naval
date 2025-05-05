@@ -41,11 +41,9 @@ public class GameManager : NetworkBehaviour {
     }
     public event EventHandler OnGameStart;
     public event EventHandler<PlayerTypeEventArgs> OnGameWin;
+    public event EventHandler OnRematch;
 
     //----------------------------------------- Events --------------------------------------------------------
-
-    public bool IsGameStarted = false;
-
     private void Awake() {
         if (Instance != null) {
             Debug.LogError("More than one GameManager instance!");
@@ -66,27 +64,28 @@ public class GameManager : NetworkBehaviour {
         var gridXPosition = GRID_WIDTH * CELL_SIZE / 2f + GRIDS_DISTANCE / 2f;
         InitializeGrid(gridArrayPlayer1, new Vector3(gridXPosition, 0, 0), gridPlayer1);
         InitializeGrid(gridArrayPlayer2, new Vector3(-gridXPosition, 0, 0), gridPlayer2);
-
-        IsGameStarted = true;
     }
 
     private void Update() {
-        if (Input.GetKeyDown(KeyCode.Space)) {
+        PaintShotPositions(gridArrayPlayer1);
+        PaintShotPositions(gridArrayPlayer2);
+    }
 
+    private void PaintShotPositions(GamePosition[,] grid) {
+        if (grid[0,0] == null) return;
+        for (int x = 0; x < GRID_WIDTH; x++) {
+            for (int z = 0; z < GRID_HEIGHT; z++) {
+                if (grid[x, z].hasBeenShot) {
+                    if (grid[x, z].isOccupied) {
+                        grid[x, z].GetComponent<Renderer>().material.color = Color.red;
+                    } else {
+                        grid[x, z].GetComponent<Renderer>().material.color = Color.blue;
+                    }
+                } else {
+                    grid[x, z].GetComponent<Renderer>().material.color = Color.clear;
+                }
+            }
         }
-        //Mostra quais posições estão ocupadas pelo player local
-        // if (!IsGameStarted) return;
-        // bool[,] gridArrayPlayerOccupied = localPlayerType == PlayerType.Player1 ? gridArrayPlayer1Occupied : gridArrayPlayer2Occupied;
-        // GamePosition[,] gridArrayPlayer = localPlayerType == PlayerType.Player1 ? gridArrayPlayer1 : gridArrayPlayer2;
-        // for (int x = 0; x < GRID_SIZE; x++) {
-        //     for (int z = 0; z < GRID_SIZE; z++) {
-        //         if (gridArrayPlayerOccupied[x, z]) {
-        //             gridArrayPlayer[x, z].GetComponent<Renderer>().material.color = Color.red;
-        //         } else {
-        //             gridArrayPlayer[x, z].GetComponent<Renderer>().material.color = Color.white;
-        //         }
-        //     }
-        // }
     }
 
     [Rpc(SendTo.Server)]
@@ -150,16 +149,12 @@ public class GameManager : NetworkBehaviour {
 
         gamePosition.GetComponent<GamePosition>().SetHasBeenShot(true);
         if (gridArrayPlayer[x, z].isOccupied) {
-            gamePosition.GetComponent<Renderer>().material.color = Color.red;
-
             var gameObject = Instantiate(explosionEffectPrefab, gamePosition.transform.position, Quaternion.identity);
             gameObject.Play();
             Destroy(gameObject.gameObject, 2f);
 
             CheckIfBoatIsDestroyedRpc(x, z, playerType);
             CheckWinnerRpc();
-        } else {
-            gamePosition.GetComponent<Renderer>().material.color = Color.blue;
         }
     }
 
@@ -360,4 +355,40 @@ public class GameManager : NetworkBehaviour {
     }
 
     public PlayerType GetLocalPlayerType() { return localPlayerType; }
+
+    [Rpc(SendTo.Server)]
+    public void RematchRpc() {
+        isPlayer1Ready.Value = false;
+        isPlayer2Ready.Value = false;
+        currentPlayablePlayerType.Value = PlayerType.None;
+        TriggerRematchRpc();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void TriggerRematchRpc() {
+        DestroyLocalPlayerBoats();
+        ClearGrid(gridArrayPlayer1);
+        ClearGrid(gridArrayPlayer2);
+        OnRematch?.Invoke(this, EventArgs.Empty);
+        OnNetworkSpawned?.Invoke(this, new PlayerTypeEventArgs {
+            playerType = localPlayerType
+        });
+    }
+
+    private void DestroyLocalPlayerBoats() {
+        foreach (IBoat boat in localPlayerBoats) {
+            Destroy(boat.gameObject);
+        }
+        localPlayerBoats.Clear();
+    }
+
+    private void ClearGrid(GamePosition[,] gridArray) {
+        for (int x = 0; x < GRID_WIDTH; x++) {
+            for (int z = 0; z < GRID_HEIGHT; z++) {
+                gridArray[x, z].isOccupied = false;
+                gridArray[x, z].hasBeenShot = false;
+                gridArray[x, z].boatOnPosition = null;
+            }
+        }
+    }
 }

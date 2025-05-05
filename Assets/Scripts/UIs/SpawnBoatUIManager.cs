@@ -34,6 +34,7 @@ public class SpawnBoatManagerUI : MonoBehaviour {
         testButton.onClick.AddListener(BoatDraggerManager.Instance.SetLoopActive);
 
         GameManager.Instance.OnGameStart += GameManager_OnGameStart;
+        GameManager.Instance.OnRematch += GameManager_OnRematch;
 
         circularBoatText.text = circularBoatPrefab.GetComponent<IBoat>().placementLimit.ToString();
         lineBoatText.text = lineBoatPrefab.GetComponent<IBoat>().placementLimit.ToString();
@@ -41,6 +42,10 @@ public class SpawnBoatManagerUI : MonoBehaviour {
 
     private void GameManager_OnGameStart(object sender, EventArgs e) {
         Hide();
+    }
+
+    private void GameManager_OnRematch(object sender, EventArgs e) {
+        Show();
     }
 
     private void OnClickSpawnBoat(GameObject boatPrefab) {
@@ -62,6 +67,10 @@ public class SpawnBoatManagerUI : MonoBehaviour {
         }
     }
 
+    private void Show() {
+        gameObject.SetActive(true);
+    }
+    
     private void Hide() {
         gameObject.SetActive(false);
     }

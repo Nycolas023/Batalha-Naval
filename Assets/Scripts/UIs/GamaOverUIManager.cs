@@ -1,14 +1,18 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GamaOverUIManager : MonoBehaviour {
     [SerializeField] private TextMeshProUGUI resultTextMesh;
     [SerializeField] private Color WinColor;
     [SerializeField] private Color LoseColor;
+    [SerializeField] private Button rematchButton;
 
     private void Start() {
+        rematchButton.onClick.AddListener(() => GameManager.Instance.RematchRpc());
         GameManager.Instance.OnGameWin += GameManager_OnGameWin;
+        GameManager.Instance.OnRematch += GameManager_OnRematch;
         Hide();
     }
 
@@ -23,9 +27,14 @@ public class GamaOverUIManager : MonoBehaviour {
         Show();
     }
 
+    private void GameManager_OnRematch(object sender, EventArgs e) {
+        Hide();
+    }
+
     private void Show() {
         gameObject.SetActive(true);
     }
+
     private void Hide() {
         gameObject.SetActive(false);
     }

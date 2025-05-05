@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class BoatDraggerManager : MonoBehaviour {
@@ -17,6 +18,19 @@ public class BoatDraggerManager : MonoBehaviour {
             Debug.LogError("More than one BoatDraggerManager instance!");
         }
         Instance = this;
+    }
+
+    private void Start() {
+        GameManager.Instance.OnGameStart += GameManager_OnGameStart;
+        GameManager.Instance.OnRematch += GameManager_OnRematch;
+    }
+
+    private void GameManager_OnGameStart(object sender, EventArgs e) {
+        isDraggingBoatActive = false;
+    }
+
+    private void GameManager_OnRematch(object sender, EventArgs e) {
+        isDraggingBoatActive = true;
     }
 
     private void Update() {

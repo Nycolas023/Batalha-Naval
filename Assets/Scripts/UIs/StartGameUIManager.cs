@@ -15,6 +15,7 @@ public class StartGameUIManager : MonoBehaviour {
         GameManager.Instance.isPlayer2Ready.OnValueChanged += GameManager_OnPlayer2ReadyChanged;
 
         GameManager.Instance.OnGameStart += GameManager_OnGameStart;
+        GameManager.Instance.OnRematch += GameManager_OnRematch;
 
         readyPlayer1Text.color = Color.red;
         readyPlayer2Text.color = Color.red;
@@ -59,7 +60,14 @@ public class StartGameUIManager : MonoBehaviour {
         Hide();
     }
 
+    private void GameManager_OnRematch(object sender, EventArgs e) {
+        Show();
+    }
 
+    private void Show() {
+        gameObject.SetActive(true);
+    }
+    
     public void Hide() {
         gameObject.SetActive(false);
     }
