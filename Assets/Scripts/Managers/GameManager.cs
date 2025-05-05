@@ -110,6 +110,11 @@ public class GameManager : NetworkBehaviour {
             return;
         }
 
+        if (currentPlayablePlayerType.Value == PlayerType.None) {
+            Debug.Log("Cant make a play!");
+            return;
+        }
+
         if (playerType != currentPlayablePlayerType.Value) {
             Debug.Log("Not your turn!");
             return;
