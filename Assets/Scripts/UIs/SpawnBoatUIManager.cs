@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,6 +13,7 @@ public class SpawnBoatManagerUI : MonoBehaviour {
     [SerializeField] private TextMeshProUGUI lineBoatText;
 
     [SerializeField] private Button testButton;
+    [SerializeField] TextMeshProUGUI playerBoatsPlacedText;
 
     public static SpawnBoatManagerUI Instance { get; private set; }
 
@@ -21,15 +23,24 @@ public class SpawnBoatManagerUI : MonoBehaviour {
         }
         Instance = this;
     }
-        
+
+    void Update() {
+        playerBoatsPlacedText.text = GameManager.Instance.localPlayerBoats.Count.ToString() + "/" + GameManager.MAX_BOATS_SPAWNED.ToString();
+    }
 
     private void Start() {
         buttonSpawnCircularBoat.onClick.AddListener(() => OnClickSpawnBoat(circularBoatPrefab));
         buttonSpawnLineBoat.onClick.AddListener(() => OnClickSpawnBoat(lineBoatPrefab));
         testButton.onClick.AddListener(BoatDraggerManager.Instance.SetLoopActive);
 
+        GameManager.Instance.OnGameStart += GameManager_OnGameStart;
+
         circularBoatText.text = circularBoatPrefab.GetComponent<IBoat>().placementLimit.ToString();
         lineBoatText.text = lineBoatPrefab.GetComponent<IBoat>().placementLimit.ToString();
+    }
+
+    private void GameManager_OnGameStart(object sender, EventArgs e) {
+        Hide();
     }
 
     private void OnClickSpawnBoat(GameObject boatPrefab) {
@@ -49,6 +60,9 @@ public class SpawnBoatManagerUI : MonoBehaviour {
                 Debug.LogError("Unknown boat type: " + boat.name);
                 break;
         }
+    }
 
+    private void Hide() {
+        gameObject.SetActive(false);
     }
 }

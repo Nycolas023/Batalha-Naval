@@ -27,10 +27,10 @@ public class GameManager : NetworkBehaviour {
     private NetworkVariable<PlayerType> currentPlayablePlayerType = new NetworkVariable<PlayerType>(PlayerType.None);
 
     public GamePosition[,] gridArrayPlayer1 = new GamePosition[GRID_WIDTH, GRID_HEIGHT];
-    private bool isPlayer1Ready = false;
+    public NetworkVariable<bool> isPlayer1Ready = new NetworkVariable<bool>(false);
 
     public GamePosition[,] gridArrayPlayer2 = new GamePosition[GRID_WIDTH, GRID_HEIGHT];
-    private bool isPlayer2Ready = false;
+    public NetworkVariable<bool> isPlayer2Ready = new NetworkVariable<bool>(false);
 
     //----------------------------------------- Events --------------------------------------------------------
 
@@ -39,6 +39,7 @@ public class GameManager : NetworkBehaviour {
     public class PlayerTypeEventArgs : EventArgs {
         public PlayerType playerType;
     }
+    public event EventHandler OnGameStart;
 
     //----------------------------------------- Events --------------------------------------------------------
 
@@ -89,9 +90,10 @@ public class GameManager : NetworkBehaviour {
 
     [Rpc(SendTo.Server)]
     public void OnChangePlayersReadyRpc() {
-        if (isPlayer1Ready && isPlayer2Ready) {
+        if (isPlayer1Ready.Value && isPlayer2Ready.Value) {
             Debug.Log("Game started!");
             currentPlayablePlayerType.Value = PlayerType.Player1;
+            TriggerOnStartGameRpc();
             TriggerChangePlayablePlayerTypeRpc(currentPlayablePlayerType.Value);
         }
     }
@@ -103,9 +105,14 @@ public class GameManager : NetworkBehaviour {
         });
     }
 
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerOnStartGameRpc() {
+        OnGameStart?.Invoke(this, EventArgs.Empty);
+    }
+
     [Rpc(SendTo.Server)]
     public void OnClickGamePositionRpc(int x, int z, PlayerType playerType) {
-        if (!isPlayer1Ready || !isPlayer2Ready) {
+        if (!isPlayer1Ready.Value || !isPlayer2Ready.Value) {
             Debug.Log("Game not started yet!");
             return;
         }
@@ -311,15 +318,15 @@ public class GameManager : NetworkBehaviour {
         }
     }
 
-    [Rpc(SendTo.ClientsAndHost)]
+    [Rpc(SendTo.Server)]
     public void SetIsPlayer1ReadyRpc(bool isReady) {
-        isPlayer1Ready = isReady;
+        isPlayer1Ready.Value = isReady;
         OnChangePlayersReadyRpc();
     }
 
-    [Rpc(SendTo.ClientsAndHost)]
+    [Rpc(SendTo.Server)]
     public void SetIsPlayer2ReadyRpc(bool isReady) {
-        isPlayer2Ready = isReady;
+        isPlayer2Ready.Value = isReady;
         OnChangePlayersReadyRpc();
     }
 

@@ -22,6 +22,13 @@ public class SpawnBoatManager : MonoBehaviour {
     }
 
     public void SpawnBoat(GameObject boatPrefab) {
+        bool isLocalPlayerReady = GameManager.Instance.GetLocalPlayerType() == GameManager.PlayerType.Player1 ?
+            GameManager.Instance.isPlayer1Ready.Value : GameManager.Instance.isPlayer2Ready.Value;
+        if (isLocalPlayerReady) {
+            Debug.Log("Player is ready, cannot spawn more boats!");
+            return;
+        }
+
         Vector3 initialPosition = GameManager.Instance.GetLocalPlayerType() ==
             GameManager.PlayerType.Player1 ? initialBoatPositionPlayer1 : initialBoatPositionPlayer2;
 
