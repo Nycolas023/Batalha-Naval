@@ -9,19 +9,11 @@ public class ShootProjectile : MonoBehaviour
 
     private bool hasFired = false; // ✅ NOVA VARIÁVEL
 
-    private bool IsMyTurn()
-    {
-        return GameManager.Instance.GetLocalPlayerType() == GameManager.Instance.GetCurrentPlayablePlayerType();
-    }
-
 
 
     private void Update()
     {
         if (!GameManager.Instance.ArePlayersReady()) return;
-
-        // Bloqueia se não for o turno do jogador local
-        if (!IsMyTurn()) return;
 
         // Bloqueia se já atirou no turno
         if (hasFired) return;
