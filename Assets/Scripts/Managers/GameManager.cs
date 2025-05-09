@@ -171,7 +171,7 @@ public class GameManager : NetworkBehaviour
         }
 
         currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
-        Invoke(nameof(ChangeCameraPositionRpc), 0.5f);
+        Invoke(nameof(ChangeCameraPositionRpc), 1f);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -181,6 +181,10 @@ public class GameManager : NetworkBehaviour
         GamePosition gamePosition = gridArrayPlayer[x, z];
 
         gamePosition.GetComponent<GamePosition>().SetHasBeenShot(true);
+
+        Vector3 targetPosition = gamePosition.transform.position;
+        ShootProjectileAnimation.Instance.SpawnProjectileAnimation(targetPosition); 
+
         if (gridArrayPlayer[x, z].isOccupied)
         {
             var gameObject = Instantiate(explosionEffectPrefab, gamePosition.transform.position, Quaternion.identity);
@@ -191,6 +195,7 @@ public class GameManager : NetworkBehaviour
             CheckWinnerRpc();
         }
     }
+
 
     [Rpc(SendTo.ClientsAndHost)]
     public void ChangeCameraPositionRpc()
@@ -205,7 +210,6 @@ public class GameManager : NetworkBehaviour
     {
         initialPosition = findInitialPositionToRender(initialPosition);
         grid.transform.position = initialPosition;
-        //Chage box collider size to match the grid size
         grid.GetComponent<BoxCollider>().size = new Vector3(
             GRID_WIDTH * CELL_SIZE,
             grid.GetComponent<BoxCollider>().size.y,
