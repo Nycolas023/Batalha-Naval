@@ -171,7 +171,7 @@ public class GameManager : NetworkBehaviour
         }
 
         currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
-        Invoke(nameof(ChangeCameraPositionRpc), 1f);
+        Invoke(nameof(ChangeCameraPositionRpc), 1.1f);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
