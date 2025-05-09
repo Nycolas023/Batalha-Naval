@@ -123,3 +123,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   x: 0
   y: 0
+  hasBeenShot: 0
+  isOccupied: 0

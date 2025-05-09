@@ -57,6 +57,21 @@ public class GameManager : NetworkBehaviour {
         } else {
             localPlayerType = PlayerType.Player2;
         }
+
+        if (IsServer) {
+            NetworkManager.Singleton.OnClientConnectedCallback += NetworkManager_OnClientConnectedCallback;
+        }
+    }
+
+    private void NetworkManager_OnClientConnectedCallback(ulong obj) {
+        Debug.Log("Client Connected");
+        if (NetworkManager.Singleton.ConnectedClients.Count == 2) {
+            TriggerOnGameStartedRpc();
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void TriggerOnGameStartedRpc() {
         OnNetworkSpawned?.Invoke(this, new PlayerTypeEventArgs {
             playerType = localPlayerType
         });
@@ -72,7 +87,7 @@ public class GameManager : NetworkBehaviour {
     }
 
     private void PaintShotPositions(GamePosition[,] grid) {
-        if (grid[0,0] == null) return;
+        if (grid[0, 0] == null) return;
         for (int x = 0; x < GRID_WIDTH; x++) {
             for (int z = 0; z < GRID_HEIGHT; z++) {
                 if (grid[x, z].hasBeenShot) {

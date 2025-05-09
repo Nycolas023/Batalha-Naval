@@ -744,7 +744,13 @@ PlayerSettings:
   XboxOneOverrideIdentityPublisher: 
   vrEditorSettings: {}
   cloudServicesEnabled:
+    Build: 0
+    Game Performance: 0
+    Legacy Analytics: 0
+    Purchasing: 0
+    UDP: 0
     UNet: 1
+    Unity Ads: 0
   luminIcon:
     m_Name: 
     m_ModelFolderPath: 
@@ -766,11 +772,11 @@ PlayerSettings:
   captureStartupLogs: {}
   activeInputHandler: 0
   windowsGamepadBackendHint: 0
-  cloudProjectId: 1fd4273e-b1eb-4745-af77-0c257cdeede8
+  cloudProjectId: 3496c01d-aa43-4fab-9565-12e499b129be
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
   projectName: Batalha-Naval
-  organizationId: nycolas023
+  organizationId: mapitoba
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}
