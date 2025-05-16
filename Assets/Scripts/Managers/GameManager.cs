@@ -16,6 +16,8 @@ public class GameManager : NetworkBehaviour {
     [SerializeField] private Grid gridPlayer2;
     [SerializeField] private GameObject cellPrefab;
     [SerializeField] private ParticleSystem explosionEffectPrefab;
+    [SerializeField] private Timer timer;
+
     public enum PlayerType {
         None,
         Player1,
