@@ -8,7 +8,7 @@ public class CameraManager : MonoBehaviour {
     private float sinTime;
     private Vector3 targetPosition;
 
-    private Vector3 centerCameraPosition = new Vector3(0, 25, -5);
+    private Vector3 centerCameraPosition = new Vector3(0, 22, 0);
     private Vector3 player1CameraPosition;
     private Vector3 player2CameraPosition;
 
@@ -40,7 +40,7 @@ public class CameraManager : MonoBehaviour {
             sinTime += Time.deltaTime * cameraSpeed;
             sinTime = Mathf.Clamp(sinTime, 0, (float)Math.PI);
             float t = Evaluate(sinTime);
-            mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, targetPosition, t);
+            // mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, targetPosition, t);
         }
     }
 
