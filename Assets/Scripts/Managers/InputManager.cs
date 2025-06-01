@@ -1,8 +1,16 @@
 using System;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class InputManager : MonoBehaviour
 {
+
+    public enum AttackMode
+    {
+        Single,
+        Area2x2
+    }
+
 
     public static InputManager Instance { get; private set; }
 
@@ -15,10 +23,13 @@ public class InputManager : MonoBehaviour
     private Vector3 lastMousePosition;
 
     [SerializeField] private Material previewMaterial;
+    public AttackMode currentAttackMode = AttackMode.Area2x2;
 
-private GamePosition lastHoveredCell;
-private Material lastHoveredOriginalMaterial;
-private bool isGameStarted = false;
+    private List<GamePosition> lastHoveredCells = new();
+    private List<Material> lastHoveredOriginalMaterials = new();
+
+    private bool isGameStarted = false;
+
 
 
     private void Awake()
@@ -30,46 +41,113 @@ private bool isGameStarted = false;
         Instance = this;
         GameManager.Instance.OnGameStart += OnGameStart;
     }
-    
-    private void OnGameStart(object sender, EventArgs e) {
-    isGameStarted = true;
-}
 
-
-private void Update()
+    private void OnGameStart(object sender, EventArgs e)
     {
-         if (!isGameStarted) return;
+        isGameStarted = true;
+    }
+
+
+    private void Update()
+    {
+        if (!isGameStarted) return;
+
         Ray ray = GetRaycastHit();
-        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, defaultLayerMask)) {
-    if (hit.collider.CompareTag("GridCell")) {
-        GamePosition cell = hit.collider.GetComponent<GamePosition>();
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, defaultLayerMask))
+        {
+            if (hit.collider.CompareTag("GridCell"))
+            {
+                GamePosition baseCell = hit.collider.GetComponent<GamePosition>();
+                if (baseCell == null) return;
 
-        if (cell != null && cell != lastHoveredCell) {
+                Vector2Int basePos = baseCell.GetGridPosition();
+                List<GamePosition> targetCells = currentAttackMode switch
+                {
+                    AttackMode.Single => GetCellsSingle(basePos),
+                    AttackMode.Area2x2 => GetCellsInArea2x2(basePos),
+                    _ => new List<GamePosition>()
+                };
+
+                if (!AreSameCells(targetCells, lastHoveredCells))
+                {
+                    ClearLastPreview();
+
+                    foreach (var cell in targetCells)
+                    {
+                        Renderer renderer = cell.GetComponent<Renderer>();
+                        lastHoveredOriginalMaterials.Add(renderer.sharedMaterial);
+                        renderer.sharedMaterial = previewMaterial;
+                    }
+
+                    lastHoveredCells = targetCells;
+                }
+            }
+        }
+        else
+        {
             ClearLastPreview();
-
-            Renderer renderer = cell.GetComponent<Renderer>();
-            lastHoveredOriginalMaterial = renderer.sharedMaterial;
-            renderer.sharedMaterial = previewMaterial;
-
-            lastHoveredCell = cell;
-
-            Debug.Log("Preview sobre: " + cell.name);
         }
     }
-} else {
-    ClearLastPreview();
-}
 
+
+    private List<GamePosition> GetCellsSingle(Vector2Int origin)
+    {
+        var result = new List<GamePosition>();
+        if (IsWithinGridBounds(origin.x, origin.y))
+        {
+            var cell = GameManager.Instance.GetLocalGridArray()[origin.x, origin.y];
+            if (cell != null) result.Add(cell);
+        }
+        return result;
+    }
+
+    private List<GamePosition> GetCellsInArea2x2(Vector2Int origin)
+    {
+        List<GamePosition> result = new();
+        for (int dx = 0; dx < 2; dx++)
+        {
+            for (int dz = 0; dz < 2; dz++)
+            {
+                int x = origin.x + dx;
+                int z = origin.y + dz;
+                if (IsWithinGridBounds(x, z))
+                {
+                    var cell = GameManager.Instance.GetLocalGridArray()[x, z];
+                    if (cell != null) result.Add(cell);
+                }
+            }
+        }
+        return result;
+    }
+
+    private bool IsWithinGridBounds(int x, int z)
+    {
+        return x >= 0 && x < GameManager.GRID_WIDTH &&
+               z >= 0 && z < GameManager.GRID_HEIGHT;
+    }
+
+    private bool AreSameCells(List<GamePosition> a, List<GamePosition> b)
+    {
+        if (a.Count != b.Count) return false;
+        for (int i = 0; i < a.Count; i++)
+        {
+            if (a[i] != b[i]) return false;
+        }
+        return true;
+    }
+
+    private void ClearLastPreview()
+    {
+        for (int i = 0; i < lastHoveredCells.Count; i++)
+        {
+            Renderer renderer = lastHoveredCells[i].GetComponent<Renderer>();
+            renderer.sharedMaterial = lastHoveredOriginalMaterials[i];
+        }
+        lastHoveredCells.Clear();
+        lastHoveredOriginalMaterials.Clear();
     }
 
 
-private void ClearLastPreview() {
-    if (lastHoveredCell != null) {
-        Renderer renderer = lastHoveredCell.GetComponent<Renderer>();
-        renderer.sharedMaterial = lastHoveredOriginalMaterial;
-        lastHoveredCell = null;
-    }
-}
 
 
     public Ray GetRaycastHit()
