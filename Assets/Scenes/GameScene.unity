@@ -2358,6 +2358,7 @@ MonoBehaviour:
   boatLayerMask:
     serializedVersion: 2
     m_Bits: 64
+  previewMaterial: {fileID: 2100000, guid: f457ac258b7065246b01e077d1584a34, type: 2}
 --- !u!1 &673263665
 GameObject:
   m_ObjectHideFlags: 0
@@ -3234,7 +3235,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -7}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1137997701
