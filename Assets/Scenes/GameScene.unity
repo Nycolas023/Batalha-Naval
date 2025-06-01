@@ -2351,7 +2351,7 @@ MonoBehaviour:
   mouseIndicator: {fileID: 607190354}
   defaultLayerMask:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 129
   gridLayerMask:
     serializedVersion: 2
     m_Bits: 8

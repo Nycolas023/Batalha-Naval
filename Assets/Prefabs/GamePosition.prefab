@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 6515966141137348283}
   - component: {fileID: 1153499545230115594}
   - component: {fileID: 2467046567562071050}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: GamePosition
-  m_TagString: Untagged
+  m_TagString: GridCell
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

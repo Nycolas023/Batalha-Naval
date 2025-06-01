@@ -18,6 +18,7 @@ public class InputManager : MonoBehaviour
 
 private GamePosition lastHoveredCell;
 private Material lastHoveredOriginalMaterial;
+private bool isGameStarted = false;
 
 
     private void Awake()
@@ -27,11 +28,20 @@ private Material lastHoveredOriginalMaterial;
             Debug.LogError("More than one InputManager instance!");
         }
         Instance = this;
+        GameManager.Instance.OnGameStart += OnGameStart;
     }
+    
+    private void OnGameStart(object sender, EventArgs e) {
+    isGameStarted = true;
+}
 
-private void Update() {
-    Ray ray = GetRaycastHit();
-    if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, gridLayerMask)) {
+
+private void Update()
+    {
+         if (!isGameStarted) return;
+        Ray ray = GetRaycastHit();
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, defaultLayerMask)) {
+    if (hit.collider.CompareTag("GridCell")) {
         GamePosition cell = hit.collider.GetComponent<GamePosition>();
 
         if (cell != null && cell != lastHoveredCell) {
@@ -45,10 +55,12 @@ private void Update() {
 
             Debug.Log("Preview sobre: " + cell.name);
         }
-    } else {
-        ClearLastPreview();
     }
+} else {
+    ClearLastPreview();
 }
+
+    }
 
 
 private void ClearLastPreview() {
