@@ -10,8 +10,23 @@ public class GamePosition : MonoBehaviour
 
     private void OnMouseDown()
     {
-        GameManager.Instance.OnClickGamePositionRpc(x, y, GameManager.Instance.GetLocalPlayerType());
+        var playerType = GameManager.Instance.GetLocalPlayerType();
+        var attackMode = InputManager.Instance.currentAttackMode;
+
+        switch (attackMode)
+        {
+            case InputManager.AttackMode.Single:
+                GameManager.Instance.OnClickGamePositionRpc(x, y, playerType);
+                break;
+            case InputManager.AttackMode.Area2x2:
+                GameManager.Instance.OnClickArea2x2Rpc(x, y, playerType);
+                break;
+            case InputManager.AttackMode.X:
+                GameManager.Instance.OnClickDiagonalXRpc(x, y, playerType);
+                break;
+        }
     }
+
 
     public void SetPosition(int x, int y)
     {
