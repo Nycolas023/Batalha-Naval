@@ -227,6 +227,35 @@ public class GameManager : NetworkBehaviour
         Invoke(nameof(ChangeCameraPositionRpc), 1.1f);
     }
 
+    [Rpc(SendTo.Server)]
+    public void OnClickDiagonalXRpc(int x, int z, PlayerType playerType)
+    {
+        if (!isPlayer1Ready.Value || !isPlayer2Ready.Value) return;
+        if (currentPlayablePlayerType.Value != playerType) return;
+
+        Vector2Int[] offsets = {
+        new Vector2Int(0, 0),     // centro
+        new Vector2Int(-1, -1),   // diagonal superior esquerda
+        new Vector2Int(1, -1),    // diagonal superior direita
+        new Vector2Int(-1, 1),    // diagonal inferior esquerda
+        new Vector2Int(1, 1)      // diagonal inferior direita
+    };
+
+        foreach (var offset in offsets)
+        {
+            int targetX = x + offset.x;
+            int targetZ = z + offset.y;
+
+            if (targetX >= 0 && targetX < GRID_WIDTH && targetZ >= 0 && targetZ < GRID_HEIGHT)
+            {
+                TriggerChangeGamePositionColorRpc(targetX, targetZ, playerType);
+            }
+        }
+
+        currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
+        Invoke(nameof(ChangeCameraPositionRpc), 1.1f);
+    }
+
 
     [Rpc(SendTo.ClientsAndHost)]
     public void TriggerChangeGamePositionColorRpc(int x, int z, PlayerType playerType)

@@ -8,7 +8,8 @@ public class InputManager : MonoBehaviour
     public enum AttackMode
     {
         Single,
-        Area2x2
+        Area2x2,
+        X
     }
 
 
@@ -44,7 +45,7 @@ public class InputManager : MonoBehaviour
 
     private void Start()
     {
-        currentAttackMode = AttackMode.Area2x2;
+        currentAttackMode = AttackMode.X;
     }
 
 
@@ -71,8 +72,10 @@ public class InputManager : MonoBehaviour
                 {
                     AttackMode.Single => GetCellsSingle(basePos),
                     AttackMode.Area2x2 => GetCellsInArea2x2(basePos),
+                    AttackMode.X => GetCellsInXShape(basePos),
                     _ => new List<GamePosition>()
                 };
+
 
                 if (!AreSameCells(targetCells, lastHoveredCells))
                 {
@@ -105,6 +108,11 @@ public class InputManager : MonoBehaviour
                 {
                     GameManager.Instance.OnClickArea2x2Rpc(pos.x, pos.y, playerType);
                 }
+                else if (currentAttackMode == AttackMode.X)
+                {
+                    GameManager.Instance.OnClickDiagonalXRpc(pos.x, pos.y, playerType);
+                }
+
 
                 ClearLastPreview(); // esconde o preview após o clique
             }
@@ -145,6 +153,33 @@ public class InputManager : MonoBehaviour
         }
         return result;
     }
+
+    private List<GamePosition> GetCellsInXShape(Vector2Int center)
+    {
+        List<GamePosition> result = new();
+
+        Vector2Int[] offsets = {
+    new Vector2Int(0, 0),
+    new Vector2Int(-1, -1),
+    new Vector2Int(1, -1),
+    new Vector2Int(-1, 1),
+    new Vector2Int(1, 1)
+};
+
+        foreach (var offset in offsets)
+        {
+            int x = center.x + offset.x;
+            int z = center.y + offset.y;
+            if (IsWithinGridBounds(x, z))
+            {
+                var cell = GameManager.Instance.GetLocalGridArray()[x, z];
+                if (cell != null) result.Add(cell);
+            }
+        }
+
+        return result;
+    }
+
 
     private bool IsWithinGridBounds(int x, int z)
     {
