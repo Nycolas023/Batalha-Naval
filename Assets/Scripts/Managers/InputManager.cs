@@ -42,6 +42,12 @@ public class InputManager : MonoBehaviour
         GameManager.Instance.OnGameStart += OnGameStart;
     }
 
+    private void Start()
+    {
+        currentAttackMode = AttackMode.Area2x2;
+    }
+
+
     private void OnGameStart(object sender, EventArgs e)
     {
         isGameStarted = true;
@@ -81,6 +87,26 @@ public class InputManager : MonoBehaviour
 
                     lastHoveredCells = targetCells;
                 }
+            }
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                if (lastHoveredCells.Count == 0) return;
+
+                GamePosition referenceCell = lastHoveredCells[0];
+                Vector2Int pos = referenceCell.GetGridPosition();
+                GameManager.PlayerType playerType = GameManager.Instance.GetLocalPlayerType();
+
+                if (currentAttackMode == AttackMode.Single)
+                {
+                    GameManager.Instance.OnClickGamePositionRpc(pos.x, pos.y, playerType);
+                }
+                else if (currentAttackMode == AttackMode.Area2x2)
+                {
+                    GameManager.Instance.OnClickArea2x2Rpc(pos.x, pos.y, playerType);
+                }
+
+                ClearLastPreview(); // esconde o preview após o clique
             }
         }
         else

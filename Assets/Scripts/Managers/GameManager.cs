@@ -201,6 +201,33 @@ public class GameManager : NetworkBehaviour
         Invoke(nameof(ChangeCameraPositionRpc), 1.1f);
     }
 
+    [Rpc(SendTo.Server)]
+    public void OnClickArea2x2Rpc(int x, int z, PlayerType playerType)
+    {
+        if (!isPlayer1Ready.Value || !isPlayer2Ready.Value) return;
+        if (currentPlayablePlayerType.Value != playerType) return;
+
+        // Aplica o ataque em cada uma das 4 células do quadrado 2x2
+        for (int dx = 0; dx < 2; dx++)
+        {
+            for (int dz = 0; dz < 2; dz++)
+            {
+                int targetX = x + dx;
+                int targetZ = z + dz;
+
+                if (targetX >= 0 && targetX < GRID_WIDTH && targetZ >= 0 && targetZ < GRID_HEIGHT)
+                {
+                    TriggerChangeGamePositionColorRpc(targetX, targetZ, playerType);
+                }
+            }
+        }
+
+        // Troca o turno
+        currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
+        Invoke(nameof(ChangeCameraPositionRpc), 1.1f);
+    }
+
+
     [Rpc(SendTo.ClientsAndHost)]
     public void TriggerChangeGamePositionColorRpc(int x, int z, PlayerType playerType)
     {
