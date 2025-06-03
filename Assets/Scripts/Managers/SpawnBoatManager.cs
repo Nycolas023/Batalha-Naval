@@ -37,12 +37,6 @@ public class SpawnBoatManager : MonoBehaviour {
 
         List<IBoat> boats = GameManager.Instance.localPlayerBoats;
 
-        if (IsBoatLimitReached(boatComponent, boats)) {
-            Debug.Log("Max boat points reached!");
-            Destroy(boat);
-            return;
-        }
-
         if (IsBoatPlacementLimitReached(boatComponent, boats)) {
             Debug.Log("Cant Spawn more of this type of boat!");
             Destroy(boat);
@@ -55,13 +49,8 @@ public class SpawnBoatManager : MonoBehaviour {
             GameManager.Instance.localPlayerBoats.Add(boat.GetComponent<IBoat>());
         }
 
-        SpawnBoatManagerUI.Instance.UpdateNumberOfBoatsToBePlaced(boatComponent);
         BoatDraggerManager.Instance.SetBoatInSpawn(boatComponent);
-    }
-    
-    private bool IsBoatLimitReached(IBoat boat, List<IBoat> localPlayerBoats) {
-        int numberOfThisBoatSpawned = localPlayerBoats.FindAll(b => b.name == boat.name).Count;
-        return numberOfThisBoatSpawned >= GameManager.MAX_BOATS_SPAWNED;
+        SpawnBoatManagerUI.Instance.UpdateNumberOfBoatsToBePlaced();
     }
 
     private bool IsBoatPlacementLimitReached(IBoat boat, List<IBoat> localPlayerBoats) {

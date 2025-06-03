@@ -8,8 +8,7 @@ public class GameManager : NetworkBehaviour {
     public const int GRID_WIDTH = 10;
     public const int GRID_HEIGHT = 10;
     public const float CELL_SIZE = 1.0f;
-    public const float GRIDS_DISTANCE = 7.24f;
-    public const int MAX_BOATS_SPAWNED = 5;
+    public const float GRIDS_DISTANCE = 2.8f;
     public static GameManager Instance { get; private set; }
 
     [SerializeField] private Grid gridPlayer1;
@@ -67,7 +66,7 @@ public class GameManager : NetworkBehaviour {
 
     private void NetworkManager_OnClientConnectedCallback(ulong obj) {
         Debug.Log("Client Connected");
-        if (NetworkManager.Singleton.ConnectedClients.Count == 2) {
+        if (NetworkManager.Singleton.ConnectedClients.Count == 1) {
             TriggerOnGameStartedRpc();
         }
     }
@@ -188,8 +187,8 @@ public class GameManager : NetworkBehaviour {
     }
 
     public void InitializeGrid(GamePosition[,] gridArray, Vector3 initialPosition, Grid grid) {
-        initialPosition = findInitialPositionToRender(initialPosition);
-        grid.transform.position = initialPosition;
+        // initialPosition = findInitialPositionToRender(initialPosition);
+        // grid.transform.position = initialPosition;
         grid.GetComponent<BoxCollider>().size = new Vector3(
             GRID_WIDTH * CELL_SIZE,
             grid.GetComponent<BoxCollider>().size.y,

@@ -12,9 +12,9 @@ using UnityEngine.SceneManagement;
 
 public class LobbyManager : MonoBehaviour {
 
+    [SerializeField] private PlayerModelSO playerModel;
 
     public static LobbyManager Instance { get; private set; }
-
 
     public const string KEY_PLAYER_NAME = "PlayerName";
     public const string KEY_PLAYER_CHARACTER = "Character";
@@ -68,6 +68,14 @@ public class LobbyManager : MonoBehaviour {
 
     private void Start() {
         IsHost = IsLobbyHost();
+
+        if (playerModel != null && playerModel.Value != null) {
+            playerName = playerModel.Value.User_Nickname;
+        } else {
+            playerName = "Player_" + UnityEngine.Random.Range(1000, 9999);
+        }
+
+        Authenticate(playerName);
     }
 
     private void Update() {
@@ -93,6 +101,7 @@ public class LobbyManager : MonoBehaviour {
 
         await AuthenticationService.Instance.SignInAnonymouslyAsync();
     }
+
 
     private void HandleRefreshLobbyList() {
         if (UnityServices.State == ServicesInitializationState.Initialized && AuthenticationService.Instance.IsSignedIn) {
@@ -401,7 +410,7 @@ public class LobbyManager : MonoBehaviour {
             IsHost = true;
 
             OnLobbyStartGame?.Invoke(this, new LobbyEventArgs { lobby = joinedLobby });
-            SceneManager.LoadScene(1);
+            SceneManager.LoadScene("GameScene");
         } catch (LobbyServiceException e) {
             Debug.Log(e);
         }
@@ -416,7 +425,7 @@ public class LobbyManager : MonoBehaviour {
 
         RelayJoinCode = relayJoinCode;
         OnLobbyStartGame?.Invoke(this, new LobbyEventArgs { lobby = joinedLobby });
-        SceneManager.LoadScene(1);
+        SceneManager.LoadScene("GameScene");
     }
 
     public async void SetRelayJoinCode(string relayJoinCode) {

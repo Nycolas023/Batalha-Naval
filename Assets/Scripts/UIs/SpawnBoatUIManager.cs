@@ -12,8 +12,11 @@ public class SpawnBoatManagerUI : MonoBehaviour {
     [SerializeField] private Button buttonSpawnLineBoat;
     [SerializeField] private TextMeshProUGUI lineBoatText;
 
+    [SerializeField] private GameObject lineBoat4Prefab;
+    [SerializeField] private Button buttonSpawnLineBoat4;
+    [SerializeField] private TextMeshProUGUI lineBoat4Text;
+
     [SerializeField] private Button testButton;
-    [SerializeField] TextMeshProUGUI playerBoatsPlacedText;
 
     public static SpawnBoatManagerUI Instance { get; private set; }
 
@@ -24,13 +27,10 @@ public class SpawnBoatManagerUI : MonoBehaviour {
         Instance = this;
     }
 
-    void Update() {
-        playerBoatsPlacedText.text = GameManager.Instance.localPlayerBoats.Count.ToString() + "/" + GameManager.MAX_BOATS_SPAWNED.ToString();
-    }
-
     private void Start() {
         buttonSpawnCircularBoat.onClick.AddListener(() => OnClickSpawnBoat(circularBoatPrefab));
         buttonSpawnLineBoat.onClick.AddListener(() => OnClickSpawnBoat(lineBoatPrefab));
+        buttonSpawnLineBoat4.onClick.AddListener(() => OnClickSpawnBoat(lineBoat4Prefab));
         testButton.onClick.AddListener(BoatDraggerManager.Instance.SetLoopActive);
 
         GameManager.Instance.OnGameStart += GameManager_OnGameStart;
@@ -38,6 +38,7 @@ public class SpawnBoatManagerUI : MonoBehaviour {
 
         circularBoatText.text = circularBoatPrefab.GetComponent<IBoat>().placementLimit.ToString();
         lineBoatText.text = lineBoatPrefab.GetComponent<IBoat>().placementLimit.ToString();
+        lineBoat4Text.text = lineBoat4Prefab.GetComponent<IBoat>().placementLimit.ToString();
     }
 
     private void GameManager_OnGameStart(object sender, EventArgs e) {
@@ -52,25 +53,27 @@ public class SpawnBoatManagerUI : MonoBehaviour {
         SpawnBoatManager.Instance.SpawnBoat(boatPrefab);
     }
 
-    public void UpdateNumberOfBoatsToBePlaced(IBoat boat) {
-        string boatName = boat.name.Split('(')[0].Trim(); // Remove "(Clone)" from the name
-        switch (boatName) {
-            case "CircularBoat":
-                circularBoatText.text = (int.Parse(circularBoatText.text) - 1).ToString();
-                break;
-            case "LineBoat":
-                lineBoatText.text = (int.Parse(lineBoatText.text) - 1).ToString();
-                break;
-            default:
-                Debug.LogError("Unknown boat type: " + boat.name);
-                break;
-        }
+    public void UpdateNumberOfBoatsToBePlaced() {
+        var circularBoat = circularBoatPrefab.GetComponent<IBoat>();
+        circularBoatText.text = circularBoat.placementLimit - GetHowManyBoatsWerePlaced(circularBoat.name) + "";
+
+        var lineBoat = lineBoatPrefab.GetComponent<IBoat>();
+        lineBoatText.text = lineBoat.placementLimit - GetHowManyBoatsWerePlaced(lineBoat.name) + "";
+
+        var lineBoat4 = lineBoat4Prefab.GetComponent<IBoat>();
+        lineBoat4Text.text = lineBoat4.placementLimit - GetHowManyBoatsWerePlaced(lineBoat4.name) + "";
+    }
+
+    public int GetHowManyBoatsWerePlaced(string boatName) {
+        var localBoatsArray = GameManager.Instance.localPlayerBoats;
+        var boatCount = localBoatsArray.FindAll(b => b.name.Split('(')[0].Trim() == boatName).Count;
+        return boatCount;
     }
 
     private void Show() {
         gameObject.SetActive(true);
     }
-    
+
     private void Hide() {
         gameObject.SetActive(false);
     }
