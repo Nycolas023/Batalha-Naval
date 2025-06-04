@@ -66,7 +66,7 @@ public class GameManager : NetworkBehaviour {
 
     private void NetworkManager_OnClientConnectedCallback(ulong obj) {
         Debug.Log("Client Connected");
-        if (NetworkManager.Singleton.ConnectedClients.Count == 1) {
+        if (NetworkManager.Singleton.ConnectedClients.Count == 2) {
             TriggerOnGameStartedRpc();
         }
     }

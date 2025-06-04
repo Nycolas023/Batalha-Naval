@@ -69,7 +69,7 @@ public class MenuRegistrarUI : MonoBehaviour {
             ""defeat"": 0,
             ""boatsSunk"": 0
         }";
-        SimpleJSON.JSONNode response = await Api.CallApi("http://localhost:5237/api/Cadastro/usuario", body);
+        SimpleJSON.JSONNode response = await Api.CallApi("http://localhost:7107/api/Cadastro/usuario", body);
 
         if (response == null) {
             ErrorRegistrarNomeUI.Show();
@@ -81,7 +81,7 @@ public class MenuRegistrarUI : MonoBehaviour {
             ""login"": """ + usuario + @""",
             ""password"": """ + senha + @"""
         }";
-        response = await Api.CallApi("http://localhost:5237/api/Consulta/usuario", body);
+        response = await Api.CallApi("http://localhost:7107/api/Consulta/usuario", body);
 
         if (response == null) {
             ErrorRegistrarNomeUI.Show();

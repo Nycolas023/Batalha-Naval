@@ -1,8 +1,6 @@
 using System.Collections;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -14,7 +12,7 @@ public class Api : MonoBehaviour {
 
     IEnumerator GetData() {
         Debug.Log("Iniciando la consulta a la API...");
-        using (UnityWebRequest webRequest = UnityWebRequest.Get("http://localhost:5237/api/Consulta/barco/1")) {
+        using (UnityWebRequest webRequest = UnityWebRequest.Get("http://localhost:7107/api/Consulta/barco/1")) {
             // Request and wait for the desired page.
             yield return webRequest.SendWebRequest();
 

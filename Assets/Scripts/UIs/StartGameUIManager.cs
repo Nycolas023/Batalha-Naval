@@ -69,11 +69,11 @@ public class StartGameUIManager : MonoBehaviour {
     }
 
     private void GameManager_OnGameStart(object sender, EventArgs e) {
-        Hide();
+        // Hide();
     }
 
     private void GameManager_OnRematch(object sender, EventArgs e) {
-        Show();
+        // Show();
     }
 
     private void Show() {
