@@ -31,7 +31,7 @@ public class MenuLoginUI : MonoBehaviour {
             ""login"": """ + UsuarioText.text + @""",
             ""password"": """ + SenhaText.text + @"""
         }";
-        SimpleJSON.JSONNode response = await Api.CallApi("http://localhost:5237/api/Consulta/usuario", body);
+        SimpleJSON.JSONNode response = await Api.CallApi("http://localhost:7107/api/Consulta/usuario", body);
 
         if (response == null) {
             ErroLoginUI.Show();
