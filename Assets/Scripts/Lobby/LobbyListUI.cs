@@ -2,21 +2,20 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
+using UnityEditor.SearchService;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class LobbyListUI : MonoBehaviour {
 
-
     public static LobbyListUI Instance { get; private set; }
-
-
 
     [SerializeField] private Transform lobbySingleTemplate;
     [SerializeField] private Transform container;
     [SerializeField] private Button refreshButton;
     [SerializeField] private Button createLobbyButton;
-
+    [SerializeField] private Button ReturnToMainMenuButton;
 
     private void Awake() {
         Instance = this;
@@ -25,6 +24,7 @@ public class LobbyListUI : MonoBehaviour {
 
         refreshButton.onClick.AddListener(RefreshButtonClick);
         createLobbyButton.onClick.AddListener(CreateLobbyButtonClick);
+        ReturnToMainMenuButton.onClick.AddListener(HandleReturnToMainMenuButtonClick);
     }
 
     private void Start() {
@@ -71,6 +71,10 @@ public class LobbyListUI : MonoBehaviour {
 
     private void CreateLobbyButtonClick() {
         LobbyCreateUI.Instance.Show();
+    }
+
+    private void HandleReturnToMainMenuButtonClick() {
+        SceneManager.LoadScene("TelaInicialScene");
     }
 
     private void Hide() {

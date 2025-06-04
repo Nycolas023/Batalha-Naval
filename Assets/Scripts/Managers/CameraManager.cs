@@ -8,7 +8,7 @@ public class CameraManager : MonoBehaviour {
     private float sinTime;
     private Vector3 targetPosition;
 
-    private Vector3 centerCameraPosition = new Vector3(0, 22, 0);
+    private Vector3 centerCameraPosition = new Vector3(0, 16, -1);
     private Vector3 player1CameraPosition;
     private Vector3 player2CameraPosition;
 

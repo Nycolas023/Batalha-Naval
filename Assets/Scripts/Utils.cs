@@ -12,4 +12,17 @@ public class Utils {
 
         return rotatedMatrix;
     }
+
+    public PlayerModel ParseFromJson(SimpleJSON.JSONNode json) {
+        return new PlayerModel(
+            json["user_id"].AsInt,
+            json["user_nickname"],
+            json["user_login"],
+            json["user_money_amount"].AsInt,
+            json["user_present_theme"],
+            json["user_match_victory"].AsInt,
+            json["user_match_defeat"].AsInt,
+            json["user_match_boats_sunk"].AsInt
+        );
+    }
 }

@@ -6,8 +6,9 @@ using UnityEngine.UI;
 public class StartGameUIManager : MonoBehaviour {
 
     [SerializeField] private Button startGameButton;
-    [SerializeField] private TextMeshProUGUI readyPlayer1Text;
-    [SerializeField] private TextMeshProUGUI readyPlayer2Text;
+
+    [SerializeField] private GameObject player1ReadyIndicator;
+    [SerializeField] private GameObject player2ReadyIndicator;
 
     private void Start() {
         startGameButton.onClick.AddListener(OnStartGameButtonClicked);
@@ -17,14 +18,13 @@ public class StartGameUIManager : MonoBehaviour {
         GameManager.Instance.OnGameStart += GameManager_OnGameStart;
         GameManager.Instance.OnRematch += GameManager_OnRematch;
 
-        readyPlayer1Text.color = Color.red;
-        readyPlayer2Text.color = Color.red;
+        HideReadyIndicatorPlayer1();
+        HideReadyIndicatorPlayer2();
     }
 
     private void OnStartGameButtonClicked() {
         if (GameManager.Instance.isPlayer1Ready.Value && GameManager.Instance.isPlayer2Ready.Value) {
             Debug.Log("Both players are ready. Starting the game.");
-
         }
 
         if (GameManager.Instance.GetLocalPlayerType() == GameManager.PlayerType.Player1) {
@@ -38,36 +38,48 @@ public class StartGameUIManager : MonoBehaviour {
 
     private void GameManager_OnPlayer1ReadyChanged(bool previousValue, bool newValue) {
         if (newValue) {
-            readyPlayer1Text.text = "READY";
-            readyPlayer1Text.color = Color.green;
+            ShowReadyIndicatorPlayer1();
         } else {
-            readyPlayer1Text.text = "NOT READY";
-            readyPlayer1Text.color = Color.red;
+            HideReadyIndicatorPlayer1();
         }
     }
 
     private void GameManager_OnPlayer2ReadyChanged(bool previousValue, bool newValue) {
         if (newValue) {
-            readyPlayer2Text.text = "READY";
-            readyPlayer2Text.color = Color.green;
+            ShowReadyIndicatorPlayer2();
         } else {
-            readyPlayer2Text.text = "NOT READY";
-            readyPlayer2Text.color = Color.red;
+            HideReadyIndicatorPlayer2();
         }
     }
 
+    public void ShowReadyIndicatorPlayer1() {
+        player1ReadyIndicator.transform.GetComponent<Image>().color = new Color(1, 1, 1, 1);
+    }
+
+    public void ShowReadyIndicatorPlayer2() {
+        player2ReadyIndicator.transform.GetComponent<Image>().color = new Color(1, 1, 1, 1);
+    }
+
+    public void HideReadyIndicatorPlayer1() {
+        player1ReadyIndicator.transform.GetComponent<Image>().color = new Color(1, 1, 1, 0);
+    }
+
+    public void HideReadyIndicatorPlayer2() {
+        player2ReadyIndicator.transform.GetComponent<Image>().color = new Color(1, 1, 1, 0);
+    }
+
     private void GameManager_OnGameStart(object sender, EventArgs e) {
-        Hide();
+        // Hide();
     }
 
     private void GameManager_OnRematch(object sender, EventArgs e) {
-        Show();
+        // Show();
     }
 
     private void Show() {
         gameObject.SetActive(true);
     }
-    
+
     public void Hide() {
         gameObject.SetActive(false);
     }
