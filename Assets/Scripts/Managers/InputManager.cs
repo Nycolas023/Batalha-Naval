@@ -24,7 +24,7 @@ public class InputManager : MonoBehaviour
     private Vector3 lastMousePosition;
 
     [SerializeField] private Material previewMaterial;
-    public AttackMode currentAttackMode = AttackMode.Area2x2;
+    public AttackMode currentAttackMode;
 
     private List<GamePosition> lastHoveredCells = new();
     private List<Material> lastHoveredOriginalMaterials = new();
@@ -45,7 +45,7 @@ public class InputManager : MonoBehaviour
 
     private void Start()
     {
-        currentAttackMode = AttackMode.X;
+        //currentAttackMode = AttackMode.X;
     }
 
 
