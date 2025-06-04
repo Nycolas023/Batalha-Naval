@@ -4,10 +4,12 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class GamaOverUIManager : MonoBehaviour {
-    [SerializeField] private TextMeshProUGUI resultTextMesh;
-    [SerializeField] private Color WinColor;
-    [SerializeField] private Color LoseColor;
+    
     [SerializeField] private Button rematchButton;
+    [SerializeField] private Button quitButton;
+
+    [SerializeField] private GameObject winImage;
+    [SerializeField] private GameObject loseImage;
 
     private void Start() {
         rematchButton.onClick.AddListener(() => GameManager.Instance.RematchRpc());
@@ -18,12 +20,12 @@ public class GamaOverUIManager : MonoBehaviour {
 
     private void GameManager_OnGameWin(object sender, GameManager.PlayerTypeEventArgs e) {
         if (e.playerType == GameManager.Instance.GetLocalPlayerType()) {
-            resultTextMesh.text = "YOU WIN!";
-            resultTextMesh.color = WinColor;
+            winImage.SetActive(true);
+            loseImage.SetActive(false);
         } else {
-            resultTextMesh.text = "YOU LOSE!";
-            resultTextMesh.color = LoseColor;
-        }
+            winImage.SetActive(false);
+            loseImage.SetActive(true);
+        } 
         Show();
     }
 
