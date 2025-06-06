@@ -17,7 +17,7 @@ public class MenuLoginUI : MonoBehaviour {
     [SerializeField] private TMP_InputField UsuarioText;
     [SerializeField] private TMP_InputField SenhaText;
 
-    [SerializeField] private PlayerModelSO Player;
+    [SerializeField] public PlayerModelSO Player;
 
     [SerializeField] private Api Api;
 
@@ -31,7 +31,7 @@ public class MenuLoginUI : MonoBehaviour {
             ""login"": """ + UsuarioText.text + @""",
             ""password"": """ + SenhaText.text + @"""
         }";
-        SimpleJSON.JSONNode response = await Api.CallApi("http://localhost:7107/api/Consulta/usuario", body);
+        SimpleJSON.JSONNode response = await Api.CallApi("http://localhost:5237/api/Consulta/usuario", body);
 
         if (response == null) {
             ErroLoginUI.Show();
