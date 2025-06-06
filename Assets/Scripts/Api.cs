@@ -1,8 +1,11 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
+using SimpleJSON;
 
 public class Api : MonoBehaviour {
     private void Start() {
@@ -75,4 +78,25 @@ public class Api : MonoBehaviour {
 
         return "";
     }
+
+    public async Task<List<int>> GetBombTypesForUser(int userId)
+    {
+        string url = "http://localhost:5237/api/Consulta/bombasCompradas";
+        string bodyJson = $"{{\"idUsuario\": {userId}}}";
+
+        SimpleJSON.JSONNode response = await CallApi(url, bodyJson);
+        List<int> bombTypes = new List<int>();
+
+        if (response != null && response.IsArray)
+        {
+            foreach (var item in response.AsArray)
+            {
+                int bombType = item.Value["bomb_type"].AsInt;
+                bombTypes.Add(bombType);
+            }
+        }
+
+        return bombTypes;
+    }
+
 }
