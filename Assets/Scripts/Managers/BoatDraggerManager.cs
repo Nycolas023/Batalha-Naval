@@ -85,7 +85,7 @@ public class BoatDraggerManager : MonoBehaviour {
             //Check if letting go of the mouse button
             if (Input.GetMouseButtonUp(0)) {
                 //If position is invalid, return to initial position
-                if (!GameManager.Instance.IsBoatPositionValid(currentDraggedObject)) {
+                if (!GameManager.Instance.IsBoatPositionValid(currentDraggedObject) || !IsPlayerPuttingBoatOnTheRightGrid(grid)) {
                     currentDraggedObject.gameObject.transform.position = initialBoatPosition;
                     currentDraggedObject.ShowInvalidPosition();
                     if (boatInSpawn != null && boatInSpawn != currentDraggedObject) {
@@ -105,9 +105,12 @@ public class BoatDraggerManager : MonoBehaviour {
             }
 
             //Right click to rotate the boat
-            if (Input.GetMouseButtonDown(1)) {
+            if (Input.GetMouseButtonDown(1)
+                && currentDraggedObject.gameObject.name != "Boat_1x1(Clone)"
+                && currentDraggedObject.gameObject.name != "Boat_2x2(Clone)"
+            ) {
                 int currentRotarion = (int)currentDraggedObject.gameObject.transform.rotation.eulerAngles.y;
-                int rotation = currentRotarion == 270 ? 0 : currentRotarion + 90;
+                int rotation = currentRotarion == 90 ? 0 : currentRotarion + 90;
                 currentDraggedObject.gameObject.transform.rotation = Quaternion.Euler(
                     0,
                     rotation,
@@ -136,5 +139,17 @@ public class BoatDraggerManager : MonoBehaviour {
 
     public void SetDraggingBoatActive(bool isActive) {
         isDraggingBoatActive = isActive;
+    }
+
+    public bool IsPlayerPuttingBoatOnTheRightGrid(Grid gridBeingIntercepted) {
+        var localPlayerType = GameManager.Instance.GetLocalPlayerType();
+        if (localPlayerType == GameManager.PlayerType.Player1 && gridBeingIntercepted.name != "GridPlayer1") {
+            Debug.Log("Player 1 is trying to put a boat on the wrong grid!");
+            return false;
+        } else if (localPlayerType == GameManager.PlayerType.Player2 && gridBeingIntercepted.name != "GridPlayer2") {
+            Debug.Log("Player 2 is trying to put a boat on the wrong grid!");
+            return false;
+        }
+        return true;
     }
 }

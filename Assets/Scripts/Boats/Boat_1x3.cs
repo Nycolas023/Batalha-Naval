@@ -1,6 +1,9 @@
+using System.Threading.Tasks;
 using UnityEngine;
 
-public class CircularBoat : MonoBehaviour, IBoat {
+public class Boat_1x3 : MonoBehaviour, IBoat {
+    [SerializeField] public int xlength { get; set; }
+    [SerializeField] public int zlength { get; set; }
     public int[,] componetsGrid { get; set; }
     public int xCenter { get; set; }
     public int zCenter { get; set; }
@@ -10,17 +13,36 @@ public class CircularBoat : MonoBehaviour, IBoat {
     public int placementLimit { get; set; } = 1;
 
     [SerializeField] private GameObject invalidPositionIndicator;
+    [SerializeField] private GameObject imageSurface;
 
     private void Awake() {
-        xCenter = 1;
+        xlength = 3;
+        zlength = 1;
+
+        xCenter = 0;
         zCenter = 1;
 
+        rotation = 0f;
+
         componetsGrid = new int[,] {
-            { 1, 1 },
-            { 1, 1 },
+            { 1 },
+            { 1 },
+            { 1 }
         };
 
         HideInvalidPosition();
+    }
+
+    private void Start() {
+        GetImageSurface();
+    }
+
+    private async Task GetImageSurface() {
+        var api = new Api();
+        Sprite sprite = await api.GetSpriteForShipAsync("1x3", GameManager.Instance.localThemeSelected ?? "Piscina");
+        imageSurface.GetComponent<SpriteRenderer>().sprite = sprite;
+        imageSurface.GetComponent<SpriteRenderer>().drawMode = SpriteDrawMode.Sliced;
+        imageSurface.GetComponent<SpriteRenderer>().size = new Vector2(3f, 5.5f);
     }
 
     public void ShowInvalidPosition() {
