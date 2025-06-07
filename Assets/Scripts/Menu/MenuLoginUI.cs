@@ -17,9 +17,7 @@ public class MenuLoginUI : MonoBehaviour {
     [SerializeField] private TMP_InputField UsuarioText;
     [SerializeField] private TMP_InputField SenhaText;
 
-    [SerializeField] public PlayerModelSO Player;
-
-    [SerializeField] private Api Api;
+    [SerializeField] private PlayerModelSO Player;
 
     private void Start() {
         ConfirmarLoginButton.onClick.AddListener(async () => await HandleConfirmarLoginButtonClick());
@@ -27,11 +25,12 @@ public class MenuLoginUI : MonoBehaviour {
     }
 
     private async Task HandleConfirmarLoginButtonClick() {
+        Api api = new Api();
         var body = @"{
             ""login"": """ + UsuarioText.text + @""",
             ""password"": """ + SenhaText.text + @"""
         }";
-        SimpleJSON.JSONNode response = await Api.CallApi("http://localhost:5237/api/Consulta/usuario", body);
+        SimpleJSON.JSONNode response = await api.CallApi("User/login", body);
 
         if (response == null) {
             ErroLoginUI.Show();

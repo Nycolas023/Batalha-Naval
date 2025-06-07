@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Video;
 
 public class GameManager : NetworkBehaviour
 {
@@ -17,6 +19,9 @@ public class GameManager : NetworkBehaviour
     [SerializeField] private GameObject cellPrefab;
     [SerializeField] private ParticleSystem explosionEffectPrefab;
     [SerializeField] private Timer timer;
+    [SerializeField] private PlayerModelSO playerModel;
+    [SerializeField] private Material defaultPositionMaterial;
+    [SerializeField] private Transform floor;
 
     public enum PlayerType
     {
@@ -28,6 +33,7 @@ public class GameManager : NetworkBehaviour
     private PlayerType localPlayerType;
     public List<IBoat> localPlayerBoats = new List<IBoat>();
     public NetworkVariable<PlayerType> currentPlayablePlayerType = new NetworkVariable<PlayerType>(PlayerType.None);
+    public string localThemeSelected = "";
 
     public GamePosition[,] gridArrayPlayer1 = new GamePosition[GRID_WIDTH, GRID_HEIGHT];
     public NetworkVariable<bool> isPlayer1Ready = new NetworkVariable<bool>(false);
@@ -55,6 +61,20 @@ public class GameManager : NetworkBehaviour
             Debug.LogError("More than one GameManager instance!");
         }
         Instance = this;
+        localThemeSelected = playerModel.Value?.User_Present_Theme;
+        if (localThemeSelected == null || localThemeSelected == "") {
+            localThemeSelected = "Piscina"; // Default theme
+        }
+
+        SetThemeURL();
+    }
+
+    private async Task SetThemeURL() {
+        var api = new Api();
+        var url = await api.GetURLForThemeAsync(localThemeSelected);
+        VideoPlayer videoPlayer = floor.GetComponent<VideoPlayer>();
+        videoPlayer.url = url;
+        videoPlayer.Play();
     }
 
     public GamePosition[,] GetLocalGridArray()
@@ -105,7 +125,9 @@ public class GameManager : NetworkBehaviour
     private void Update()
     {
         PaintShotPositions(gridArrayPlayer1);
+        // PaintOccupiedPositions(gridArrayPlayer1);
         PaintShotPositions(gridArrayPlayer2);
+        // PaintOccupiedPositions(gridArrayPlayer2);
     }
 
     private void PaintShotPositions(GamePosition[,] grid)
@@ -125,9 +147,20 @@ public class GameManager : NetworkBehaviour
                     {
                         grid[x, z].GetComponent<Renderer>().material.color = Color.blue;
                     }
+                } else {
+                    grid[x, z].GetComponent<Renderer>().material = defaultPositionMaterial;
                 }
-                else
-                {
+            }
+        }
+    }
+
+    private void PaintOccupiedPositions(GamePosition[,] grid) {
+        if (grid[0, 0] == null) return;
+        for (int x = 0; x < GRID_WIDTH; x++) {
+            for (int z = 0; z < GRID_HEIGHT; z++) {
+                if (grid[x, z].isOccupied) {
+                    grid[x, z].GetComponent<Renderer>().material.color = Color.yellow;
+                } else {
                     grid[x, z].GetComponent<Renderer>().material.color = Color.clear;
                 }
             }
