@@ -72,10 +72,20 @@ public class GameManager : NetworkBehaviour {
         videoPlayer.Play();
     }
 
-    public override void OnNetworkSpawn() {
-        if (NetworkManager.Singleton.LocalClientId == 0) {
+    public GamePosition[,] GetLocalGridArray()
+    {
+        return localPlayerType == PlayerType.Player1 ? gridArrayPlayer2 : gridArrayPlayer1;
+    }
+
+
+    public override void OnNetworkSpawn()
+    {
+        if (NetworkManager.Singleton.LocalClientId == 0)
+        {
             localPlayerType = PlayerType.Player1;
-        } else {
+        }
+        else
+        {
             localPlayerType = PlayerType.Player2;
         }
 
