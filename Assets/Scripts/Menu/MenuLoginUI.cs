@@ -19,19 +19,18 @@ public class MenuLoginUI : MonoBehaviour {
 
     [SerializeField] private PlayerModelSO Player;
 
-    [SerializeField] private Api Api;
-
     private void Start() {
         ConfirmarLoginButton.onClick.AddListener(async () => await HandleConfirmarLoginButtonClick());
         RegistrarButton.onClick.AddListener(HandleRegistrarButtonClick);
     }
 
     private async Task HandleConfirmarLoginButtonClick() {
+        Api api = new Api();
         var body = @"{
             ""login"": """ + UsuarioText.text + @""",
             ""password"": """ + SenhaText.text + @"""
         }";
-        SimpleJSON.JSONNode response = await Api.CallApi("http://localhost:7107/api/Consulta/usuario", body);
+        SimpleJSON.JSONNode response = await api.CallApi("User/login", body);
 
         if (response == null) {
             ErroLoginUI.Show();

@@ -28,7 +28,7 @@ public class Timer : MonoBehaviour {
         int minutes = Mathf.Max(0, Mathf.FloorToInt(remainingTime / 60));
         int seconds = Mathf.Max(0, Mathf.FloorToInt(remainingTime % 60));
 
-        timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+        timerText.text = string.Format("{1:00}", minutes, seconds);
     }
 
     private void GameManager_OnGameStart(object sender, EventArgs e) {

@@ -17,8 +17,8 @@ public class SpawnBoatManager : MonoBehaviour {
     }
 
     private void Start() {
-        initialBoatPositionPlayer1 = new Vector3(8.62f, 0.6f, -6.3f);
-        initialBoatPositionPlayer2 = new Vector3(-8.62f, 0.6f, -6.3f);
+        initialBoatPositionPlayer1 = new Vector3(3.8f, 0.6f, -7.15f);
+        initialBoatPositionPlayer2 = new Vector3(3.8f, 0.6f, -7.15f);
     }
 
     public void SpawnBoat(GameObject boatPrefab) {
