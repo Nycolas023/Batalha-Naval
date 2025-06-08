@@ -55,15 +55,14 @@ public class BombSelectorUI : MonoBehaviour {
     }
 
     private async void LoadBombsForUser() {
-        int userId = player.Value.User_Id;
+        int userId = 2;
+        if (player.Value != null)
+            userId = player.Value.User_Id;
+        
         bombsToDisplay.Clear();
         bombsToDisplay.Add(defaultBomb); // padrão sempre vem
 
-        var api = FindObjectOfType<Api>();
-        if (api == null) {
-            Debug.LogError("Api não encontrada na cena!");
-            return;
-        }
+        var api = new Api();
 
         List<int> bombTypes = await api.GetBombTypesForUser(userId);
         Debug.Log("🎯 bombTypes da API: " + string.Join(",", bombTypes));

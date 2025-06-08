@@ -47,6 +47,7 @@ public class SpawnBoatManagerUI : MonoBehaviour {
         buttonSpawnBoat1x4.onClick.AddListener(() => OnClickSpawnBoat(Boat1x4Prefab));
         testButton.onClick.AddListener(BoatDraggerManager.Instance.SetLoopActive);
 
+        GameManager.Instance.OnNetworkSpawned += GameManager_OnNetworkSpawn;
         GameManager.Instance.OnGameStart += GameManager_OnGameStart;
         GameManager.Instance.OnRematch += GameManager_OnRematch;
 
@@ -58,6 +59,12 @@ public class SpawnBoatManagerUI : MonoBehaviour {
         boat1x4Text.text = Boat1x4Prefab.GetComponent<IBoat>().placementLimit.ToString();
 
         GetSpritesForButtonsAsync();
+
+        Hide();
+    }
+
+    private void GameManager_OnNetworkSpawn(object sender, GameManager.PlayerTypeEventArgs e) {
+        Show();
     }
 
     private void GameManager_OnGameStart(object sender, EventArgs e) {

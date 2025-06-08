@@ -1,11 +1,8 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
-using SimpleJSON;
 
 public class Api {
     public string baseUrl { get; set; } = "http://localhost:5001";
@@ -121,10 +118,9 @@ public class Api {
 
     public async Task<List<int>> GetBombTypesForUser(int userId)
     {
-        string url = "http://localhost:5237/api/Consulta/bombasCompradas";
-        string bodyJson = $"{{\"idUsuario\": {userId}}}";
+        string url = $"Bomb/GetOwnedBombs/{userId}";
 
-        SimpleJSON.JSONNode response = await CallApi(url, bodyJson);
+        SimpleJSON.JSONNode response = await CallApi(url);
         List<int> bombTypes = new List<int>();
 
         if (response != null && response.IsArray)

@@ -26,7 +26,7 @@ public class Boat_2x2 : MonoBehaviour, IBoat {
     }
 
     private void Start() {
-        GetImageSurface();
+        _ = GetImageSurface();
     }
 
     private async Task GetImageSurface() {
