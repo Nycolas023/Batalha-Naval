@@ -116,8 +116,7 @@ public class Api {
                   .Replace(")", "%29");
     }
 
-    public async Task<List<int>> GetBombTypesForUser(int userId)
-    {
+    public async Task<List<int>> GetBombTypesForUser(int userId) {
         string url = $"Bomb/GetOwnedBombs/{userId}";
 
         SimpleJSON.JSONNode response = await CallApi(url);
