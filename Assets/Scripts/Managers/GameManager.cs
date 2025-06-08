@@ -61,7 +61,7 @@ public class GameManager : NetworkBehaviour {
             localThemeSelected = "Piscina"; // Default theme
         }
 
-        SetThemeURL();
+        _ = SetThemeURL();
     }
 
     private async Task SetThemeURL() {
@@ -72,20 +72,15 @@ public class GameManager : NetworkBehaviour {
         videoPlayer.Play();
     }
 
-    public GamePosition[,] GetLocalGridArray()
-    {
+    public GamePosition[,] GetLocalGridArray() {
         return localPlayerType == PlayerType.Player1 ? gridArrayPlayer2 : gridArrayPlayer1;
     }
 
 
-    public override void OnNetworkSpawn()
-    {
-        if (NetworkManager.Singleton.LocalClientId == 0)
-        {
+    public override void OnNetworkSpawn() {
+        if (NetworkManager.Singleton.LocalClientId == 0) {
             localPlayerType = PlayerType.Player1;
-        }
-        else
-        {
+        } else {
             localPlayerType = PlayerType.Player2;
         }
 
@@ -96,7 +91,7 @@ public class GameManager : NetworkBehaviour {
 
     private void NetworkManager_OnClientConnectedCallback(ulong obj) {
         Debug.Log("Client Connected");
-        if (NetworkManager.Singleton.ConnectedClients.Count == 1) {
+        if (NetworkManager.Singleton.ConnectedClients.Count == 2) {
             TriggerOnGameStartedRpc();
         }
     }
@@ -143,7 +138,7 @@ public class GameManager : NetworkBehaviour {
                 if (grid[x, z].isOccupied) {
                     grid[x, z].GetComponent<Renderer>().material.color = Color.yellow;
                 } else {
-                    grid[x, z].GetComponent<Renderer>().material.color = Color.clear;
+                    grid[x, z].GetComponent<Renderer>().material = defaultPositionMaterial;
                 }
             }
         }
@@ -203,6 +198,55 @@ public class GameManager : NetworkBehaviour {
         Invoke(nameof(ChangeCameraPositionRpc), 1.1f);
     }
 
+    [Rpc(SendTo.Server)]
+    public void OnClickArea2x2Rpc(int x, int z, PlayerType playerType) {
+        if (!isPlayer1Ready.Value || !isPlayer2Ready.Value) return;
+        if (currentPlayablePlayerType.Value != playerType) return;
+
+        // Aplica o ataque em cada uma das 4 células do quadrado 2x2
+        for (int dx = 0; dx < 2; dx++) {
+            for (int dz = 0; dz < 2; dz++) {
+                int targetX = x + dx;
+                int targetZ = z + dz;
+
+                if (targetX >= 0 && targetX < GRID_WIDTH && targetZ >= 0 && targetZ < GRID_HEIGHT) {
+                    TriggerChangeGamePositionColorRpc(targetX, targetZ, playerType);
+                }
+            }
+        }
+
+        // Troca o turno
+        currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
+        Invoke(nameof(ChangeCameraPositionRpc), 1.1f);
+    }
+
+    [Rpc(SendTo.Server)]
+    public void OnClickDiagonalXRpc(int x, int z, PlayerType playerType) {
+        if (!isPlayer1Ready.Value || !isPlayer2Ready.Value) return;
+        if (currentPlayablePlayerType.Value != playerType) return;
+
+        Vector2Int[] offsets = {
+            new Vector2Int(0, 0),     // centro
+            new Vector2Int(-1, -1),   // diagonal superior esquerda
+            new Vector2Int(1, -1),    // diagonal superior direita
+            new Vector2Int(-1, 1),    // diagonal inferior esquerda
+            new Vector2Int(1, 1)      // diagonal inferior direita
+        };
+
+        foreach (var offset in offsets) {
+            int targetX = x + offset.x;
+            int targetZ = z + offset.y;
+
+            if (targetX >= 0 && targetX < GRID_WIDTH && targetZ >= 0 && targetZ < GRID_HEIGHT) {
+                TriggerChangeGamePositionColorRpc(targetX, targetZ, playerType);
+            }
+        }
+
+        currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
+        Invoke(nameof(ChangeCameraPositionRpc), 1.1f);
+    }
+
+
     [Rpc(SendTo.ClientsAndHost)]
     public void TriggerChangeGamePositionColorRpc(int x, int z, PlayerType playerType) {
         GamePosition[,] gridArrayPlayer = playerType == PlayerType.Player1 ? gridArrayPlayer2 : gridArrayPlayer1;
@@ -232,8 +276,8 @@ public class GameManager : NetworkBehaviour {
     }
 
     public void InitializeGrid(GamePosition[,] gridArray, Vector3 initialPosition, Grid grid) {
-        // initialPosition = findInitialPositionToRender(initialPosition);
-        // grid.transform.position = initialPosition;
+        initialPosition = findInitialPositionToRender(initialPosition);
+        grid.transform.position = initialPosition;
         grid.GetComponent<BoxCollider>().size = new Vector3(
             GRID_WIDTH * CELL_SIZE,
             grid.GetComponent<BoxCollider>().size.y,
