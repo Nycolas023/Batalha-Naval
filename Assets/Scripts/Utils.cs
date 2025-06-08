@@ -1,4 +1,17 @@
+using System;
+using System.Collections.Generic;
+using SimpleJSON;
+using UnityEngine;
+
 public class Utils {
+    public class ShopItem {
+        public string Name { get; set; }
+        public string Price { get; set; }
+        public string PreviewImagePath { get; set; }
+        public bool IsPurchased { get; set; }
+        public Sprite PreviewImage { get; set; }
+    }
+
     public int[,] RotateMatrix(int[,] matrix) {
         int rows = matrix.GetLength(0);
         int cols = matrix.GetLength(1);
@@ -24,5 +37,22 @@ public class Utils {
             json["user_match_defeat"].AsInt,
             json["user_match_boats_sunk"].AsInt
         );
+    }
+
+    public List<ShopItem> ParseShopItems(JSONNode json) {
+        var shopItems = new List<ShopItem>();
+
+        foreach (var item in json.AsArray) {
+            var node = item.Value;
+            var shopItem = new ShopItem {
+                Name = node["name"],
+                Price = node["price"],
+                PreviewImagePath = node["previewImagePath"],
+                IsPurchased = node["isPurchased"].AsBool
+            };
+            shopItems.Add(shopItem);
+        }
+
+        return shopItems;
     }
 }
