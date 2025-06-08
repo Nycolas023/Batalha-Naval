@@ -23,7 +23,7 @@ public class Api {
 
     public async Task<SimpleJSON.JSONNode> CallApi(string url, string body) {
         byte[] bodyRaw = Encoding.UTF8.GetBytes(body);
-        using (UnityWebRequest webRequest = new UnityWebRequest(url, "POST")) {
+        using (UnityWebRequest webRequest = new UnityWebRequest($"{baseUrl}/{url}", "POST")) {
             webRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
             webRequest.downloadHandler = new DownloadHandlerBuffer();
             webRequest.SetRequestHeader("Content-Type", "application/json");
@@ -60,13 +60,13 @@ public class Api {
 
     internal async Task<Sprite> GetSpriteForShipAsync(string shipSize, string themeName) {
         var imageName = await GetShipImageNameWithSizeAndThemeAsync(shipSize, themeName ?? "Piscina");
-        var texture = await GetTextureAsync($"{baseUrl}/File/GetFile?fileName={imageName}");
+        var texture = await GetTextureAsync($"File/GetFile?fileName={imageName}");
         Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
         return sprite;
     }
 
     public async Task<Texture2D> GetTextureAsync(string url) {
-        url = FormatURL(url);
+        url = FormatURL($"{baseUrl}/{url}");
         using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(url)) {
             await request.SendWebRequest();
 
@@ -116,17 +116,14 @@ public class Api {
                   .Replace(")", "%29");
     }
 
-    public async Task<List<int>> GetBombTypesForUser(int userId)
-    {
+    public async Task<List<int>> GetBombTypesForUser(int userId) {
         string url = $"Bomb/GetOwnedBombs/{userId}";
 
         SimpleJSON.JSONNode response = await CallApi(url);
         List<int> bombTypes = new List<int>();
 
-        if (response != null && response.IsArray)
-        {
-            foreach (var item in response.AsArray)
-            {
+        if (response != null && response.IsArray) {
+            foreach (var item in response.AsArray) {
                 int bombType = item.Value["bomb_type"].AsInt;
                 bombTypes.Add(bombType);
             }
@@ -135,4 +132,16 @@ public class Api {
         return bombTypes;
     }
 
+    public async Task<PlayerModel> UpdatePlayerModel(int userId) {
+        var utils = new Utils();
+        string url = $"User/GetUserById/{userId}";
+
+        SimpleJSON.JSONNode response = await CallApi(url);
+        if (response != null) {
+            return utils.ParseFromJson(response);
+        } else {
+            Debug.LogError("Failed to update player model: response is null.");
+            return null;
+        }
+    }
 }
