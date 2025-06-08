@@ -13,6 +13,7 @@ public class GamaOverUIManager : MonoBehaviour {
 
     private void Start() {
         rematchButton.onClick.AddListener(() => GameManager.Instance.RematchRpc());
+        quitButton.onClick.AddListener(() => GameManager.Instance.QuitGameRpc());
         GameManager.Instance.OnGameWin += GameManager_OnGameWin;
         GameManager.Instance.OnRematch += GameManager_OnRematch;
         Hide();

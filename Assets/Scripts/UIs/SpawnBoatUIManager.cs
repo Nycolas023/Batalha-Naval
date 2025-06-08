@@ -73,6 +73,7 @@ public class SpawnBoatManagerUI : MonoBehaviour {
 
     private void GameManager_OnRematch(object sender, EventArgs e) {
         Show();
+        UpdateNumberOfBoatsToBePlaced();
     }
 
     private void OnClickSpawnBoat(GameObject boatPrefab) {
