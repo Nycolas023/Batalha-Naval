@@ -204,8 +204,27 @@ public class GameManager : NetworkBehaviour {
 
     [Rpc(SendTo.ClientsAndHost)]
     private void TriggerOnStartGameRpc() {
+        // 👉 No início de cada player, já desativa o próprio grid permanentemente
+        if (IsLocalPlayerPlayer1()) {
+            SetGridCollidersActive(gridPlayer1, false);  // Player1 não interage com o Grid1
+            SetGridCollidersActive(gridPlayer2, true);   // Player1 pode interagir com o Grid2
+        } else if (IsLocalPlayerPlayer2()) {
+            SetGridCollidersActive(gridPlayer2, false);  // Player2 não interage com o Grid2
+            SetGridCollidersActive(gridPlayer1, true);   // Player2 pode interagir com o Grid1
+        }
+
         OnGameStart?.Invoke(this, EventArgs.Empty);
     }
+
+    private bool IsLocalPlayerPlayer1() {
+        return GetLocalPlayerType() == PlayerType.Player1;
+    }
+
+    private bool IsLocalPlayerPlayer2() {
+        return GetLocalPlayerType() == PlayerType.Player2;
+    }
+
+
 
     [Rpc(SendTo.Server)]
     public void OnClickGamePositionRpc(int x, int z, PlayerType playerType) {
@@ -235,7 +254,10 @@ public class GameManager : NetworkBehaviour {
             TriggerChangeGamePositionColorRpc(x, z, playerType);
         }
 
+
         currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
+        //UpdateGridCollidersPerTurn();
+
         Invoke(nameof(ChangeCameraPositionRpc), 1.1f);
     }
 
@@ -572,18 +594,21 @@ public class GameManager : NetworkBehaviour {
         return currentPlayablePlayerType.Value;
     }
 
-
-    [ServerRpc(RequireOwnership = false)]
-    public void SetCurrentPlayablePlayerTypeServerRpc(PlayerType newPlayer) {
-        currentPlayablePlayerType.Value = newPlayer;
-    }
-
     public Vector3 GetGridPlayer1Position() {
         return gridPlayer1.transform.position;
     }
 
     public Vector3 GetGridPlayer2Position() {
         return gridPlayer2.transform.position;
+    }
+
+    public void SetGridCollidersActive(Grid grid, bool active) {
+        foreach (Transform cell in grid.transform) {
+            Collider collider = cell.GetComponent<Collider>();
+            if (collider != null) {
+                collider.enabled = active;
+            }
+        }
     }
 
     [Rpc(SendTo.ClientsAndHost)]
