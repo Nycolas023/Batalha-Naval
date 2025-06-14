@@ -13,7 +13,7 @@ public class GameManager : NetworkBehaviour {
     public const int GRID_HEIGHT = 10;
     public const float CELL_SIZE = 1.0f;
     public const float GRIDS_DISTANCE = 2.8f;
-    public const int MAX_BOATS = 5;
+    public const int MAX_BOATS = 1;
     public static GameManager Instance { get; private set; }
 
     [SerializeField] private Grid gridPlayer1;
