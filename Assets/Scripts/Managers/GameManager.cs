@@ -245,7 +245,6 @@ private bool IsLocalPlayerPlayer2()
 
         // Troca o turno
         currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
-        //UpdateGridCollidersPerTurn();
         Invoke(nameof(ChangeCameraPositionRpc), 1.1f);
     }
 
@@ -272,7 +271,6 @@ private bool IsLocalPlayerPlayer2()
         }
 
         currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
-        //UpdateGridCollidersPerTurn();
         Invoke(nameof(ChangeCameraPositionRpc), 1.1f);
     }
 
@@ -540,14 +538,6 @@ private bool IsLocalPlayerPlayer2()
         return currentPlayablePlayerType.Value;
     }
 
-
-    /* [ServerRpc(RequireOwnership = false)]
-    public void SetCurrentPlayablePlayerTypeServerRpc(PlayerType newPlayer)
-    {
-        currentPlayablePlayerType.Value = newPlayer;
-        UpdateGridCollidersPerTurn(); // 👈 Adicione aqui
-    } */
-
     public Vector3 GetGridPlayer1Position() {
         return gridPlayer1.transform.position;
     }
@@ -563,14 +553,5 @@ private bool IsLocalPlayerPlayer2()
                 collider.enabled = active;
             }
         }
-    }
-    public void UpdateGridCollidersPerTurn() {
-        /* if (currentPlayablePlayerType.Value == PlayerType.Player1) {
-            SetGridCollidersActive(gridPlayer1, false);
-            SetGridCollidersActive(gridPlayer2, true);
-        } else if (currentPlayablePlayerType.Value == PlayerType.Player2) {
-            SetGridCollidersActive(gridPlayer1, true);
-            SetGridCollidersActive(gridPlayer2, false);
-        } */
     }
 }

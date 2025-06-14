@@ -93,7 +93,6 @@ public class InputManager : MonoBehaviour
                 lastHoveredCells = targetCells;
             }
         }
-        //GameManager.Instance.UpdateGridCollidersPerTurn();
 }
 
 
