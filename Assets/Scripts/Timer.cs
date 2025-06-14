@@ -8,14 +8,18 @@ public class Timer : MonoBehaviour {
     [SerializeField] float ROUND_DURATION = 20f;
 
     public bool IsTimerRunning = false;
+    public bool IsGameFinished = false;
 
     private void Start() {
         GameManager.Instance.OnChangePlayablePlayerType += GameManager_OnChangePlayablePlayerType;
+        GameManager.Instance.OnGameWin += GameManager_OnGameWin;
+        GameManager.Instance.OnRematch += GameManager_OnRematch;
 
         StartTimer(ROUND_DURATION);
     }
 
     void Update() {
+        if (IsGameFinished) return;
         if (!IsTimerRunning) return;
 
         if (remainingTime > 0f) {
@@ -25,7 +29,7 @@ public class Timer : MonoBehaviour {
             timerText.outlineColor = Color.black;
             timerText.faceColor = Color.red;
             IsTimerRunning = false;
-            if(GameManager.Instance.IsServer)
+            if (GameManager.Instance.IsServer)
                 GameManager.Instance.LostTurnRpc();
         }
 
@@ -37,6 +41,16 @@ public class Timer : MonoBehaviour {
 
     private void GameManager_OnChangePlayablePlayerType(object sender, GameManager.PlayerTypeEventArgs e) {
         StartTimer(ROUND_DURATION);
+    }
+
+    private void GameManager_OnGameWin(object sender, GameManager.PlayerTypeEventArgs e) {
+        Debug.Log("Game Over! Stopping timer.");
+        IsGameFinished = true;
+    }
+
+    private void GameManager_OnRematch(object sender, EventArgs e) {
+        StartTimer(ROUND_DURATION);
+        IsGameFinished = false;
     }
 
     public void StartTimer(float time) {

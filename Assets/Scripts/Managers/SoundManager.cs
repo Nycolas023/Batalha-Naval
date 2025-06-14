@@ -28,6 +28,9 @@ public class SoundManager : MonoBehaviour {
     [SerializeField] private AudioClip posicionarTradicionalSound;
     [SerializeField] private AudioClip posicionarEstacionamentoSound;
 
+    [SerializeField] private AudioClip winSound;
+    [SerializeField] private AudioClip loseSound;
+
     private void Awake() {
         if (Instance == null) {
             Instance = this;
@@ -165,5 +168,13 @@ public class SoundManager : MonoBehaviour {
         }
 
         PlaySound(selectedClip);
+    }
+
+    public void PlayWinSound() {
+        PlaySound(winSound);
+    }
+
+    public void PlayLoseSound() {
+        PlaySound(loseSound);
     }
 }
