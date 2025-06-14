@@ -22,7 +22,7 @@ public class TemasUI : MonoBehaviour {
 
     private void Start() {
         api = new Api();
-        VoltarButton.onClick.AddListener(Hide);
+        VoltarButton.onClick.AddListener(HandleVoltarButtonClick);
         ProximoTemaButton.onClick.AddListener(() => HandleTemaNavigation(1));
         TemaAnteriorButton.onClick.AddListener(() => HandleTemaNavigation(-1));
         EquiparButton.onClick.AddListener(handleEquiparButtonClick);
@@ -31,11 +31,17 @@ public class TemasUI : MonoBehaviour {
         _ = LoadThemesOwned();
     }
 
+    private void HandleVoltarButtonClick() {
+        SoundManager.Instance.PlayBackSound();
+        Hide();
+    }
+
     private async Task LoadThemesOwned() {
         var response = await api.CallApi($"Theme/GetThemesForShopForUser/{Player.Value.User_Id}");
         var utils = new Utils();
         var shopItems = utils.ParseShopItems(response);
         foreach (var item in shopItems) {
+            if (!item.IsPurchased) continue;
             var texture2D = await api.GetTextureAsync($"File/GetFile?fileName={item.PreviewImagePath}");
             var sprite = Sprite.Create(texture2D, new Rect(0, 0, texture2D.width, texture2D.height), new Vector2(0.5f, 0.5f));
             item.PreviewImage = sprite;
@@ -57,6 +63,8 @@ public class TemasUI : MonoBehaviour {
             return;
         }
 
+        SoundManager.Instance.PlayClickSound();
+
         currentThemeIndex += v;
         if (currentThemeIndex < 0) {
             currentThemeIndex = shopItemsList.Count - 1; // Loop to last theme
@@ -75,6 +83,8 @@ public class TemasUI : MonoBehaviour {
             Debug.LogError("Erro ao equipar o tema.");
             return;
         }
+
+        SoundManager.Instance.PlayClickSound();
 
         Player.Value.User_Present_Theme = shopItemsList[currentThemeIndex].Name;
         EquipadoText.alpha = 1f;

@@ -22,11 +22,13 @@ public class MenuInicialUI : MonoBehaviour {
     }
 
     private void HandleRegistrarButtonClick() {
+        SoundManager.Instance.PlayClickSound();
         MenuRegistrarUI.Show();
         Hide();
     }
 
     private void HandleLoginButtonClick() {
+        SoundManager.Instance.PlayClickSound();
         MenuLoginUI.Show();
         Hide();
     }

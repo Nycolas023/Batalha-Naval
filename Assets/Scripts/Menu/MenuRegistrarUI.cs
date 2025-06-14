@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class MenuRegistrarUI : MonoBehaviour {
-
     [SerializeField] private Button ConfirmarRegistrarButton;
     [SerializeField] private Button LoginButton;
 
@@ -29,6 +28,7 @@ public class MenuRegistrarUI : MonoBehaviour {
     }
 
     private async Task HandleConfirmarRegistrarButtonClickAsync() {
+        SoundManager.Instance.PlayClickSound();
         string usuario = UsuarioText.text;
         string senha = SenhaText.text;
         string confirmarSenha = ConfirmarSenhaText.text;
@@ -85,6 +85,7 @@ public class MenuRegistrarUI : MonoBehaviour {
     }
 
     private void HandleLoginButtonClick() {
+        SoundManager.Instance.PlayClickSound();
         MenuLoginUI.SetActive(true);
         gameObject.SetActive(false);
     }

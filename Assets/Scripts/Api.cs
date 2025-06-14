@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -5,8 +6,8 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 public class Api {
-    // public string baseUrl { get; set; } = "http://localhost:5001";
-    public string baseUrl { get; set; } = "http://api.dubortoto.com.br";
+    public string baseUrl { get; set; } = "http://localhost:5001";
+    // public string baseUrl { get; set; } = "http://api.dubortoto.com.br";
 
     public async Task<SimpleJSON.JSONNode> CallApi(string path) {
         using (UnityWebRequest webRequest = UnityWebRequest.Get($"{baseUrl}/{path}")) {
@@ -61,6 +62,25 @@ public class Api {
 
     internal async Task<Sprite> GetSpriteForShipAsync(string shipSize, string themeName) {
         var imageName = await GetShipImageNameWithSizeAndThemeAsync(shipSize, themeName ?? "Piscina");
+        var texture = await GetTextureAsync($"File/GetFile?fileName={imageName}");
+        Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+        return sprite;
+    }
+
+    internal async Task<Sprite> GetSpriteForThemeBombAsync(string themeName) {
+        var url = $"{baseUrl}/Theme/GetThemeByName/" + themeName;
+        string imageName;
+        using (UnityWebRequest request = UnityWebRequest.Get(url)) {
+            await request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError) {
+                Debug.LogError("Error: " + request.error);
+                return null;
+            } else {
+                SimpleJSON.JSONNode json = SimpleJSON.JSON.Parse(request.downloadHandler.text);
+                imageName = json["theme_bomb_image"];
+            }
+        }
         var texture = await GetTextureAsync($"File/GetFile?fileName={imageName}");
         Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
         return sprite;

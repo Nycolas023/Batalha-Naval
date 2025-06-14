@@ -28,16 +28,20 @@ public class LobbyUI : MonoBehaviour {
         playerSingleTemplate.gameObject.SetActive(false);
 
         changeMarineButton.onClick.AddListener(() => {
+            SoundManager.Instance.PlayClickSound();
             LobbyManager.Instance.UpdatePlayerCharacter(LobbyManager.PlayerCharacter.Marine);
         });
         changeNinjaButton.onClick.AddListener(() => {
+            SoundManager.Instance.PlayClickSound();
             LobbyManager.Instance.UpdatePlayerCharacter(LobbyManager.PlayerCharacter.Ninja);
         });
         changeZombieButton.onClick.AddListener(() => {
+            SoundManager.Instance.PlayClickSound();
             LobbyManager.Instance.UpdatePlayerCharacter(LobbyManager.PlayerCharacter.Zombie);
         });
 
         leaveLobbyButton.onClick.AddListener(() => {
+            SoundManager.Instance.PlayBackSound();
             LobbyManager.Instance.LeaveLobby();
         });
     }

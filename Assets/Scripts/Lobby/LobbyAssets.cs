@@ -5,10 +5,7 @@ using UnityEngine.UI;
 
 public class LobbyAssets : MonoBehaviour {
 
-
-
     public static LobbyAssets Instance { get; private set; }
-
 
     [SerializeField] private Sprite marineSprite;
     [SerializeField] private Sprite ninjaSprite;

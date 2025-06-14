@@ -13,7 +13,7 @@ public class GameManager : NetworkBehaviour {
     public const int GRID_HEIGHT = 10;
     public const float CELL_SIZE = 1.0f;
     public const float GRIDS_DISTANCE = 2.8f;
-    public const int MAX_BOATS = 5;
+    public const int MAX_BOATS = 1;
     public static GameManager Instance { get; private set; }
 
     [SerializeField] private Grid gridPlayer1;
@@ -91,7 +91,7 @@ public class GameManager : NetworkBehaviour {
         }
 
         SetPlayerNameRpc(playerModel.Value.User_Nickname, localPlayerType);
-        await SetThemeURL();
+        _ = SetThemeURL();
     }
 
     private async Task SetThemeURL() {
@@ -100,6 +100,7 @@ public class GameManager : NetworkBehaviour {
         VideoPlayer videoPlayer = floor.GetComponent<VideoPlayer>();
         videoPlayer.url = url;
         videoPlayer.Play();
+        SoundManager.Instance.PlayBackgroundThemeMusic(localThemeSelected);
     }
 
     [Rpc(SendTo.Server)]
@@ -116,6 +117,7 @@ public class GameManager : NetworkBehaviour {
     }
 
     public override void OnNetworkSpawn() {
+        Debug.Log("GameManager OnNetworkSpawn called");
         if (NetworkManager.Singleton.LocalClientId == 0) {
             localPlayerType = PlayerType.Player1;
         } else {
@@ -586,6 +588,7 @@ public class GameManager : NetworkBehaviour {
 
     [Rpc(SendTo.ClientsAndHost)]
     public void QuitGameRpc() {
+        SoundManager.Instance.PlayMenuBackgroundMusic();
         if (NetworkManager.Singleton.IsServer)
             ShutdownAndDisconnectPlayersRpc();
         SceneManager.LoadScene("TelaInicialScene");

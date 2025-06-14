@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TMPro;
@@ -28,12 +29,17 @@ public class LojaTemasUI : MonoBehaviour {
         api = new Api();
         shopItemsList = new List<ItemLoja>();
 
-        VoltarButton.onClick.AddListener(Hide);
+        VoltarButton.onClick.AddListener(HandleVoltarButtonClick);
         BombasButton.onClick.AddListener(HandleBombasButtonClick);
         MoedasButton.onClick.AddListener(HandleMoedasButtonClick);
 
         LoadShopItems();
         _ = UpdatePlayerSO();
+    }
+
+    private void HandleVoltarButtonClick() {
+        SoundManager.Instance.PlayBackSound();
+        Hide();
     }
 
     private async Task UpdatePlayerSO() {
@@ -72,11 +78,13 @@ public class LojaTemasUI : MonoBehaviour {
     }
 
     private void HandleBombasButtonClick() {
+        SoundManager.Instance.PlayClickSound();
         BombasUI.Show();
         Hide();
     }
 
     private void HandleMoedasButtonClick() {
+        SoundManager.Instance.PlayClickSound();
         MoedasUI.Show();
         Hide();
     }

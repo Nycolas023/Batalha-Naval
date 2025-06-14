@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -26,7 +27,7 @@ public class LojaMoedasUI : MonoBehaviour {
         api = new Api();
         MoneyText.text = Player.Value.User_Money_Amount.ToString();
 
-        VoltarButton.onClick.AddListener(Hide);
+        VoltarButton.onClick.AddListener(HandleVoltarButtonClick);
         TemasButton.onClick.AddListener(HandleTemasButtonClick);
         BombasButton.onClick.AddListener(HandleBombasButtonClick);
 
@@ -35,12 +36,19 @@ public class LojaMoedasUI : MonoBehaviour {
         Comprar75MoedasButton.onClick.AddListener(() => HandleComprarMoedasButtonClick(75));
     }
 
+    private void HandleVoltarButtonClick() {
+        SoundManager.Instance.PlayBackSound();
+        Hide();
+    }
+
     private void HandleTemasButtonClick() {
+        SoundManager.Instance.PlayClickSound();
         TemasUI.Show();
         Hide();
     }
 
     private void HandleBombasButtonClick() {
+        SoundManager.Instance.PlayClickSound();
         BombasUI.Show();
         Hide();
     }
@@ -52,6 +60,7 @@ public class LojaMoedasUI : MonoBehaviour {
     }
 
     private async void HandleComprarMoedasButtonClick(int amount) {
+        SoundManager.Instance.PlayMoneySound();
         SimpleJSON.JSONNode response = await api.CallApi($"User/BuyCoins/{Player.Value.User_Id}/{amount}");
 
         if (response == null) {

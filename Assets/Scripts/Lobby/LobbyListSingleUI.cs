@@ -17,6 +17,7 @@ public class LobbyListSingleUI : MonoBehaviour {
 
     private void Awake() {
         GetComponent<Button>().onClick.AddListener(() => {
+            SoundManager.Instance.PlayClickSound();
             LobbyManager.Instance.JoinLobby(lobby);
         });
     }

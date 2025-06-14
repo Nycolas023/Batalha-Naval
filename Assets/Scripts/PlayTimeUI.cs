@@ -13,6 +13,11 @@ public class PlayTimeUI : MonoBehaviour {
     [SerializeField] private Sprite Emoji3Image;
     [SerializeField] private Sprite Emoji4Image;
 
+    [SerializeField] private AudioClip Emoji1Sound;
+    [SerializeField] private AudioClip Emoji2Sound;
+    [SerializeField] private AudioClip Emoji3Sound;
+    [SerializeField] private AudioClip Emoji4Sound;
+
     [SerializeField] private GameObject Player1EmojiContainer;
     [SerializeField] private GameObject Player1EmojiTargetObject;
 
@@ -46,12 +51,13 @@ public class PlayTimeUI : MonoBehaviour {
         var targetObject = e.playerType == GameManager.PlayerType.Player1 ? Player1EmojiTargetObject : Player2EmojiTargetObject;
 
         Sprite emojiSprite = null;
-        if (e.spriteIndex == 1) emojiSprite = Emoji1Image;
-        else if (e.spriteIndex == 2) emojiSprite = Emoji2Image;
-        else if (e.spriteIndex == 3) emojiSprite = Emoji3Image;
-        else if (e.spriteIndex == 4) emojiSprite = Emoji4Image;
+        AudioClip emojiSound = null;
+        if (e.spriteIndex == 1)         { emojiSprite = Emoji1Image; emojiSound = Emoji1Sound; }
+        else if (e.spriteIndex == 2)    { emojiSprite = Emoji2Image; emojiSound = Emoji2Sound; }
+        else if (e.spriteIndex == 3)    { emojiSprite = Emoji3Image; emojiSound = Emoji3Sound; }
+        else if (e.spriteIndex == 4)    { emojiSprite = Emoji4Image; emojiSound = Emoji4Sound; }
 
-        EmojiAnimator.Instance.StartEmojiAnimation(emojiSprite, emojiContainer, targetObject);
+        EmojiAnimator.Instance.StartEmojiAnimation(emojiSprite, emojiSound, emojiContainer, targetObject);
     }
 
     public void Show() {

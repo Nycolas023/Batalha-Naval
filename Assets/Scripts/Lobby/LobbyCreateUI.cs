@@ -26,6 +26,7 @@ public class LobbyCreateUI : MonoBehaviour {
         Instance = this;
 
         createButton.onClick.AddListener(() => {
+            SoundManager.Instance.PlayClickSound();
             LobbyManager.Instance.CreateLobby(
                 lobbyName,
                 maxPlayers,
@@ -36,6 +37,7 @@ public class LobbyCreateUI : MonoBehaviour {
         });
 
         lobbyNameButton.onClick.AddListener(() => {
+            SoundManager.Instance.PlayClickSound();
             UI_InputWindow.Show_Static("Lobby Name", lobbyName, "abcdefghijklmnopqrstuvxywzABCDEFGHIJKLMNOPQRSTUVXYWZ .,-", 20,
             () => {
                 // Cancel
@@ -47,6 +49,7 @@ public class LobbyCreateUI : MonoBehaviour {
         });
 
         publicPrivateButton.onClick.AddListener(() => {
+            SoundManager.Instance.PlayClickSound();
             isPrivate = !isPrivate;
             UpdateText();
         });
