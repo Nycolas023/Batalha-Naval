@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class LojaTemasUI : MonoBehaviour {
+public class LojaTemasUI : MonoBehaviour, ILoja {
     [SerializeField] private Button VoltarButton;
 
     [SerializeField] private TextMeshProUGUI MoneyText;
@@ -20,6 +20,7 @@ public class LojaTemasUI : MonoBehaviour {
     
     [SerializeField] private Transform ItemLojaContainer;
     [SerializeField] private ItemLoja ItemLojaPrefab;
+    [SerializeField] private Transform ComingSoonPrefab;
 
     private List<ItemLoja> shopItemsList;
 
@@ -50,7 +51,7 @@ public class LojaTemasUI : MonoBehaviour {
 
     private async void LoadShopItems() {
         if (ItemLojaContainer.childCount > 0) {
-            foreach (Transform child in ItemLojaContainer) 
+            foreach (Transform child in ItemLojaContainer)
                 Destroy(child.gameObject);
         }
         shopItemsList.Clear();
@@ -63,12 +64,13 @@ public class LojaTemasUI : MonoBehaviour {
             return;
         }
 
-        var shopItems = utils.ParseShopItems(json);
+        var shopItems = utils.ParseThemeShopItems(json);
         foreach (var item in shopItems) {
             var itemInstance = Instantiate(ItemLojaPrefab, ItemLojaContainer);
-            _ = itemInstance.Initialize(item.Name, item.Price, item.PreviewImagePath, item.IsPurchased, Player.Value.User_Id, this);
+            _ = itemInstance.Initialize(item.Name, item.Price, item.PreviewImagePath, item.IsPurchased, false, Player.Value.User_Id, this, "Theme/BuyTheme");
             Debug.Log($"Item: {item.Name}, Price: {item.Price}, Purchased: {item.IsPurchased}");
         }
+        Instantiate(ComingSoonPrefab, ItemLojaContainer);
     }
 
     public void UpdateShopItems() {

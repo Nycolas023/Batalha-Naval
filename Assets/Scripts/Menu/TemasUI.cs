@@ -17,7 +17,7 @@ public class TemasUI : MonoBehaviour {
     [SerializeField] private PlayerModelSO Player;
 
     private Api api;
-    private List<ShopItem> shopItemsList;
+    private List<ThemeShopItem> shopItemsList;
     private int currentThemeIndex = 0;
 
     private void Start() {
@@ -27,7 +27,7 @@ public class TemasUI : MonoBehaviour {
         TemaAnteriorButton.onClick.AddListener(() => HandleTemaNavigation(-1));
         EquiparButton.onClick.AddListener(handleEquiparButtonClick);
 
-        shopItemsList = new List<ShopItem>();
+        shopItemsList = new List<ThemeShopItem>();
         _ = LoadThemesOwned();
     }
 
@@ -39,7 +39,7 @@ public class TemasUI : MonoBehaviour {
     private async Task LoadThemesOwned() {
         var response = await api.CallApi($"Theme/GetThemesForShopForUser/{Player.Value.User_Id}");
         var utils = new Utils();
-        var shopItems = utils.ParseShopItems(response);
+        var shopItems = utils.ParseThemeShopItems(response);
         foreach (var item in shopItems) {
             if (!item.IsPurchased) continue;
             var texture2D = await api.GetTextureAsync($"File/GetFile?fileName={item.PreviewImagePath}");

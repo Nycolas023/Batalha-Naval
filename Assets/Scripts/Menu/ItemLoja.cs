@@ -8,15 +8,24 @@ public class ItemLoja : MonoBehaviour {
     [SerializeField] private TextMeshProUGUI itemPriceText;
     [SerializeField] private Image itemImage;
     [SerializeField] private Button purchaseButton;
+    [SerializeField] private GameObject numberOfItemsOwned;
+    [SerializeField] private TextMeshProUGUI numberOfItemsOwnedText;
 
     private int userId;
-    private LojaTemasUI lojaTemasUI;
+    private ILoja lojaUI;
+    private string apiPath;
 
-    public async Task Initialize(string itemName, string itemPrice, string previewImagePath, bool isPurchased, int userId, LojaTemasUI lojaTemasUI) {
+    public async Task Initialize(string itemName, string itemPrice, string previewImagePath, bool isPurchased, bool shouldShowNumberOfItemsOwned, int userId, ILoja lojaUI, string apiPath, int numberOfItemsOwned = 0) {
         itemNameText.text = itemName;
         itemPriceText.text = isPurchased ? "Já Obtido" : itemPrice;
         this.userId = userId;
-        this.lojaTemasUI = lojaTemasUI;
+        this.lojaUI = lojaUI;
+        this.apiPath = apiPath;
+
+        if (shouldShowNumberOfItemsOwned) {
+            this.numberOfItemsOwned.SetActive(true);
+            numberOfItemsOwnedText.text = numberOfItemsOwned.ToString();
+        }
 
         Texture2D texture = await new Api().GetTextureAsync($"File/GetFile?fileName={previewImagePath}");
         if (texture == null) {
@@ -31,7 +40,7 @@ public class ItemLoja : MonoBehaviour {
 
     private async void OnPurchaseButtonClicked(string itemName, string itemPrice) {
         var api = new Api();
-        var response = await api.CallApi($"Theme/BuyTheme/{userId}/{itemName}", "");
+        var response = await api.CallApi($"{apiPath}/{userId}/{itemName}", "");
 
         if (response == null) {
             Debug.LogError("Erro ao comprar o item da loja.");
@@ -41,7 +50,7 @@ public class ItemLoja : MonoBehaviour {
         SoundManager.Instance.PlayMoneySound();
         Debug.Log($"Purchased {itemName} for {itemPrice}");
         purchaseButton.interactable = false;
-        lojaTemasUI.UpdateShopItems();
+        lojaUI.UpdateShopItems();
     }
 
     private void OnDestroy() {
