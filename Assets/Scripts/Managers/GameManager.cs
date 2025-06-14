@@ -162,32 +162,26 @@ public class GameManager : NetworkBehaviour {
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-private void TriggerOnStartGameRpc()
-{
-    // 👉 No início de cada player, já desativa o próprio grid permanentemente
-    if (IsLocalPlayerPlayer1())
-    {
-        SetGridCollidersActive(gridPlayer1, false);  // Player1 não interage com o Grid1
-        SetGridCollidersActive(gridPlayer2, true);   // Player1 pode interagir com o Grid2
+    private void TriggerOnStartGameRpc() {
+        // 👉 No início de cada player, já desativa o próprio grid permanentemente
+        if (IsLocalPlayerPlayer1()) {
+            SetGridCollidersActive(gridPlayer1, false);  // Player1 não interage com o Grid1
+            SetGridCollidersActive(gridPlayer2, true);   // Player1 pode interagir com o Grid2
+        } else if (IsLocalPlayerPlayer2()) {
+            SetGridCollidersActive(gridPlayer2, false);  // Player2 não interage com o Grid2
+            SetGridCollidersActive(gridPlayer1, true);   // Player2 pode interagir com o Grid1
+        }
+
+        OnGameStart?.Invoke(this, EventArgs.Empty);
     }
-    else if (IsLocalPlayerPlayer2())
-    {
-        SetGridCollidersActive(gridPlayer2, false);  // Player2 não interage com o Grid2
-        SetGridCollidersActive(gridPlayer1, true);   // Player2 pode interagir com o Grid1
+
+    private bool IsLocalPlayerPlayer1() {
+        return GetLocalPlayerType() == PlayerType.Player1;
     }
 
-    OnGameStart?.Invoke(this, EventArgs.Empty);
-}
-
-private bool IsLocalPlayerPlayer1()
-{
-    return GetLocalPlayerType() == PlayerType.Player1;
-}
-
-private bool IsLocalPlayerPlayer2()
-{
-    return GetLocalPlayerType() == PlayerType.Player2;
-}
+    private bool IsLocalPlayerPlayer2() {
+        return GetLocalPlayerType() == PlayerType.Player2;
+    }
 
 
 
