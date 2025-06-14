@@ -13,6 +13,7 @@ public class ErroCriarSenhaUI : MonoBehaviour {
     }
 
     public void Hide() {
+        SoundManager.Instance.PlayClickSound();
         gameObject.SetActive(false);
     }
 }

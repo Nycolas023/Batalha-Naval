@@ -38,6 +38,7 @@ public class ItemLoja : MonoBehaviour {
             return;
         }
 
+        SoundManager.Instance.PlayMoneySound();
         Debug.Log($"Purchased {itemName} for {itemPrice}");
         purchaseButton.interactable = false;
         lojaTemasUI.UpdateShopItems();

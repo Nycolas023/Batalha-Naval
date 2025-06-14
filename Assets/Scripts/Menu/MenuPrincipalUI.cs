@@ -21,19 +21,23 @@ public class MenuPrincipalUI : MonoBehaviour {
     }
 
     private void HandleJogarButtonClick() {
+        SoundManager.Instance.PlayClickSound();
         Debug.Log("Jogar button clicked");
         SceneManager.LoadScene("LobbyScene");
     }
 
     private void HandlePerfilButtonClick() {
+        SoundManager.Instance.PlayClickSound();
         PerfilUI.Show();
     }
 
     private void HandleLojaButtonClick() {
+        SoundManager.Instance.PlayClickSound();
         LojaUI.Show();
     }
 
     private void HandleTemasButtonClick() {
+        SoundManager.Instance.PlayClickSound();
         TemasUI.Show();
     }
 
