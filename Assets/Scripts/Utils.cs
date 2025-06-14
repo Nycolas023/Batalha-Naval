@@ -4,11 +4,21 @@ using SimpleJSON;
 using UnityEngine;
 
 public class Utils {
-    public class ShopItem {
+    public class ThemeShopItem {
         public string Name { get; set; }
         public string Price { get; set; }
         public string PreviewImagePath { get; set; }
         public bool IsPurchased { get; set; }
+        public Sprite PreviewImage { get; set; }
+    }
+
+    public class BombShopItem {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Price { get; set; }
+        public string PreviewImagePath { get; set; }
+        public int Type { get; set; }
+        public int Quantity { get; set; }
         public Sprite PreviewImage { get; set; }
     }
 
@@ -39,16 +49,35 @@ public class Utils {
         );
     }
 
-    public List<ShopItem> ParseShopItems(JSONNode json) {
-        var shopItems = new List<ShopItem>();
+    public List<ThemeShopItem> ParseThemeShopItems(JSONNode json) {
+        var shopItems = new List<ThemeShopItem>();
 
         foreach (var item in json.AsArray) {
             var node = item.Value;
-            var shopItem = new ShopItem {
+            var shopItem = new ThemeShopItem {
                 Name = node["name"],
                 Price = node["price"],
                 PreviewImagePath = node["previewImagePath"],
                 IsPurchased = node["isPurchased"].AsBool
+            };
+            shopItems.Add(shopItem);
+        }
+
+        return shopItems;
+    }
+
+    public List<BombShopItem> ParseBombShopItems(JSONNode json) {
+        var shopItems = new List<BombShopItem>();
+
+        foreach (var item in json.AsArray) {
+            var node = item.Value;
+            var shopItem = new BombShopItem {
+                Id = node["bomb_id"].AsInt,
+                Name = node["bomb_name"],
+                Price = node["bomb_price"],
+                PreviewImagePath = node["bomb_image"],
+                Type = node["bomb_type"].AsInt,
+                Quantity = node["stored_quantity"].AsInt,
             };
             shopItems.Add(shopItem);
         }
