@@ -64,14 +64,17 @@ public class LobbyListUI : MonoBehaviour {
     }
 
     private void RefreshButtonClick() {
+        SoundManager.Instance.PlayClickSound();
         LobbyManager.Instance.RefreshLobbyList();
     }
 
     private void CreateLobbyButtonClick() {
+        SoundManager.Instance.PlayClickSound();
         LobbyCreateUI.Instance.Show();
     }
 
     private void HandleReturnToMainMenuButtonClick() {
+        SoundManager.Instance.PlayBackSound();
         SceneManager.LoadScene("TelaInicialScene");
     }
 
