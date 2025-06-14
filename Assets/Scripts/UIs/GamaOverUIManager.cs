@@ -23,9 +23,11 @@ public class GamaOverUIManager : MonoBehaviour {
         if (e.playerType == GameManager.Instance.GetLocalPlayerType()) {
             winImage.SetActive(true);
             loseImage.SetActive(false);
+            SoundManager.Instance.PlayWinSound();
         } else {
             winImage.SetActive(false);
             loseImage.SetActive(true);
+            SoundManager.Instance.PlayLoseSound();
         } 
         Show();
     }

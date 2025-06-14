@@ -252,6 +252,8 @@ public class GameManager : NetworkBehaviour {
             return;
         } else {
             TriggerChangeGamePositionColorRpc(x, z, playerType);
+            if (DidProjectileHit(x, z, playerType)) SoundManager.Instance.PlayAcertoSound(localThemeSelected);
+            else SoundManager.Instance.PlayErroSound(localThemeSelected);
         }
 
 
@@ -266,6 +268,8 @@ public class GameManager : NetworkBehaviour {
         if (!isPlayer1Ready.Value || !isPlayer2Ready.Value) return;
         if (currentPlayablePlayerType.Value != playerType) return;
 
+        bool didProjectileHit = false;
+
         // Aplica o ataque em cada uma das 4 células do quadrado 2x2
         for (int dx = 0; dx < 2; dx++) {
             for (int dz = 0; dz < 2; dz++) {
@@ -274,9 +278,13 @@ public class GameManager : NetworkBehaviour {
 
                 if (targetX >= 0 && targetX < GRID_WIDTH && targetZ >= 0 && targetZ < GRID_HEIGHT) {
                     TriggerChangeGamePositionColorRpc(targetX, targetZ, playerType);
+                    if (DidProjectileHit(targetX, targetZ, playerType)) didProjectileHit = true;
                 }
             }
         }
+
+        if (didProjectileHit) SoundManager.Instance.PlayAcertoSound(localThemeSelected);
+        else SoundManager.Instance.PlayErroSound(localThemeSelected);
 
         // Troca o turno
         currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
@@ -296,14 +304,20 @@ public class GameManager : NetworkBehaviour {
             new Vector2Int(1, 1)      // diagonal inferior direita
         };
 
+        bool didProjectileHit = false;
+
         foreach (var offset in offsets) {
             int targetX = x + offset.x;
             int targetZ = z + offset.y;
 
             if (targetX >= 0 && targetX < GRID_WIDTH && targetZ >= 0 && targetZ < GRID_HEIGHT) {
                 TriggerChangeGamePositionColorRpc(targetX, targetZ, playerType);
+                if (DidProjectileHit(targetX, targetZ, playerType)) didProjectileHit = true;
             }
         }
+
+        if (didProjectileHit) SoundManager.Instance.PlayAcertoSound(localThemeSelected);
+        else SoundManager.Instance.PlayErroSound(localThemeSelected);
 
         currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
         Invoke(nameof(ChangeCameraPositionRpc), 1.1f);
@@ -328,6 +342,11 @@ public class GameManager : NetworkBehaviour {
             CheckIfBoatIsDestroyedRpc(x, z, playerType);
             CheckWinnerRpc();
         }
+    }
+
+    public bool DidProjectileHit(int x, int z, PlayerType playerType) {
+        GamePosition[,] gridArrayPlayer = playerType == PlayerType.Player1 ? gridArrayPlayer2 : gridArrayPlayer1;
+        return gridArrayPlayer[x, z].isOccupied;
     }
 
 
@@ -439,6 +458,7 @@ public class GameManager : NetworkBehaviour {
         }
 
         localNumberOfBoastsOnGrid++;
+        SoundManager.Instance.PlayPosicionarSound(localThemeSelected);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
