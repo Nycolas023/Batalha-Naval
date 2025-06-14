@@ -54,45 +54,46 @@ public class InputManager : MonoBehaviour
         isGameStarted = true;
     }
 
-private void Update()
-{
-    if (!isGameStarted) return;
+    private void Update() {
+        if (!isGameStarted) return;
 
-    Ray ray = GetRaycastHit();
-    if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, defaultLayerMask))
-    {
-        if (hit.collider.CompareTag("GridCell"))
-        {
-            GamePosition baseCell = hit.collider.GetComponent<GamePosition>();
-            if (baseCell == null) return;
+        Ray ray = GetRaycastHit();
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, defaultLayerMask)) {
+            if (hit.collider.CompareTag("GridCell")) {
+                GamePosition baseCell = hit.collider.GetComponent<GamePosition>();
+                if (baseCell == null) return;
 
-            Vector2Int basePos = baseCell.GetGridPosition();
-            List<GamePosition> targetCells = currentAttackMode switch
-            {
-                AttackMode.Single => GetCellsSingle(basePos),
-                AttackMode.Area2x2 => GetCellsInArea2x2(basePos),
-                AttackMode.X => GetCellsInXShape(basePos),
-                _ => new List<GamePosition>()
-            };
+                string gridName = baseCell.transform.parent.name;
+                var currentPlayer = GameManager.Instance.GetCurrentPlayablePlayerType();
 
-            // ❗ Remover preview das anteriores
-            //ClearLastPreview();
+                Debug.Log($"👀 Mouse sobre a célula do grid: {gridName} e player {currentPlayer}");
 
-            // ❗ Aplicar preview em todas as novas
-            foreach (var cell in targetCells)
-            {
-                Renderer renderer = cell.GetComponent<Renderer>();
-                if (renderer != null)
-                {
-                    lastHoveredOriginalMaterials.Add(renderer.sharedMaterial);
-                    renderer.sharedMaterial = previewMaterial;
-                    Debug.Log($"✅ Aplicando preview em {cell.name} na posição {cell.transform.position}");
+
+                Vector2Int basePos = baseCell.GetGridPosition();
+                List<GamePosition> targetCells = currentAttackMode switch {
+                    AttackMode.Single => GetCellsSingle(basePos),
+                    AttackMode.Area2x2 => GetCellsInArea2x2(basePos),
+                    AttackMode.X => GetCellsInXShape(basePos),
+                    _ => new List<GamePosition>()
+                };
+
+                // ❗ Remover preview das anteriores
+                //ClearLastPreview();
+
+                // ❗ Aplicar preview em todas as novas
+                foreach (var cell in targetCells) {
+                    Renderer renderer = cell.GetComponent<Renderer>();
+                    if (renderer != null) {
+                        lastHoveredOriginalMaterials.Add(renderer.sharedMaterial);
+                        renderer.sharedMaterial = previewMaterial;
+                        //Debug.Log($"✅ Aplicando preview em {cell.name} na posição {cell.transform.position}");
+                    }
                 }
-            }
 
-            lastHoveredCells = targetCells;
+                lastHoveredCells = targetCells;
+            }
         }
-    }
+        //GameManager.Instance.UpdateGridCollidersPerTurn();
 }
 
 
