@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Video;
 
 public class GameManager : NetworkBehaviour {
@@ -11,6 +13,7 @@ public class GameManager : NetworkBehaviour {
     public const int GRID_HEIGHT = 10;
     public const float CELL_SIZE = 1.0f;
     public const float GRIDS_DISTANCE = 2.8f;
+    public const int MAX_BOATS = 5;
     public static GameManager Instance { get; private set; }
 
     [SerializeField] private Grid gridPlayer1;
@@ -21,6 +24,7 @@ public class GameManager : NetworkBehaviour {
     [SerializeField] private PlayerModelSO playerModel;
     [SerializeField] private Material defaultPositionMaterial;
     [SerializeField] private Transform floor;
+    [SerializeField] private FlashImage flashImage;
 
     public enum PlayerType {
         None,
@@ -31,7 +35,10 @@ public class GameManager : NetworkBehaviour {
     private PlayerType localPlayerType;
     public List<IBoat> localPlayerBoats = new List<IBoat>();
     public NetworkVariable<PlayerType> currentPlayablePlayerType = new NetworkVariable<PlayerType>(PlayerType.None);
+    public NetworkVariable<FixedString64Bytes> Player1Name = new NetworkVariable<FixedString64Bytes>("Player 1 teste");
+    public NetworkVariable<FixedString64Bytes> Player2Name = new NetworkVariable<FixedString64Bytes>("Player 2 teste");
     public string localThemeSelected = "";
+    public int localNumberOfBoastsOnGrid = 0;
 
     public GamePosition[,] gridArrayPlayer1 = new GamePosition[GRID_WIDTH, GRID_HEIGHT];
     public NetworkVariable<bool> isPlayer1Ready = new NetworkVariable<bool>(false);
@@ -49,6 +56,12 @@ public class GameManager : NetworkBehaviour {
     public event EventHandler OnGameStart;
     public event EventHandler<PlayerTypeEventArgs> OnGameWin;
     public event EventHandler OnRematch;
+    public event EventHandler OnLostTurn;
+    public event EventHandler<EmojiCallEventArgs> OnEmojiCall;
+    public class EmojiCallEventArgs : EventArgs {
+        public int spriteIndex;
+        public PlayerType playerType;
+    }
 
     //----------------------------------------- Events --------------------------------------------------------
     private void Awake() {
@@ -57,11 +70,28 @@ public class GameManager : NetworkBehaviour {
         }
         Instance = this;
         localThemeSelected = playerModel.Value?.User_Present_Theme;
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void OnClientConnectRpc() {
+        SetPlayerModel();
+    }
+
+    private async void SetPlayerModel() {
+        var api = new Api();
+
         if (localThemeSelected == null || localThemeSelected == "") {
-            localThemeSelected = "Piscina"; // Default theme
+            PlayerModel player;
+            if (localPlayerType == PlayerType.Player1)
+                player = await api.UpdatePlayerModel(2);
+            else
+                player = await api.UpdatePlayerModel(3);
+            playerModel.Value = player;
+            localThemeSelected = player.User_Present_Theme;
         }
 
-        _ = SetThemeURL();
+        SetPlayerNameRpc(playerModel.Value.User_Nickname, localPlayerType);
+        await SetThemeURL();
     }
 
     private async Task SetThemeURL() {
@@ -72,10 +102,18 @@ public class GameManager : NetworkBehaviour {
         videoPlayer.Play();
     }
 
+    [Rpc(SendTo.Server)]
+    public void SetPlayerNameRpc(string playerName, PlayerType playerType) {
+        if (playerType == PlayerType.Player1) {
+            Player1Name.Value = playerName;
+        } else if (playerType == PlayerType.Player2) {
+            Player2Name.Value = playerName;
+        }
+    }
+
     public GamePosition[,] GetLocalGridArray() {
         return localPlayerType == PlayerType.Player1 ? gridArrayPlayer2 : gridArrayPlayer1;
     }
-
 
     public override void OnNetworkSpawn() {
         if (NetworkManager.Singleton.LocalClientId == 0) {
@@ -91,6 +129,7 @@ public class GameManager : NetworkBehaviour {
 
     private void NetworkManager_OnClientConnectedCallback(ulong obj) {
         Debug.Log("Client Connected");
+        OnClientConnectRpc();
         if (NetworkManager.Singleton.ConnectedClients.Count == 2) {
             TriggerOnGameStartedRpc();
         }
@@ -275,6 +314,23 @@ public class GameManager : NetworkBehaviour {
         });
     }
 
+    [Rpc(SendTo.Server)]
+    public void LostTurnRpc() {
+        Debug.Log("Lost turn called!");
+        if (currentPlayablePlayerType.Value == PlayerType.Player1) {
+            currentPlayablePlayerType.Value = PlayerType.Player2;
+        } else if (currentPlayablePlayerType.Value == PlayerType.Player2) {
+            currentPlayablePlayerType.Value = PlayerType.Player1;
+        }
+        ChangeCameraPositionRpc();
+        TriggerLostTurnAnimationRpc();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void TriggerLostTurnAnimationRpc() {
+        OnLostTurn?.Invoke(this, EventArgs.Empty);
+    }
+
     public void InitializeGrid(GamePosition[,] gridArray, Vector3 initialPosition, Grid grid) {
         initialPosition = findInitialPositionToRender(initialPosition);
         grid.transform.position = initialPosition;
@@ -357,6 +413,8 @@ public class GameManager : NetworkBehaviour {
                 }
             }
         }
+
+        localNumberOfBoastsOnGrid++;
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -388,6 +446,8 @@ public class GameManager : NetworkBehaviour {
                 }
             }
         }
+
+        localNumberOfBoastsOnGrid--;
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -522,5 +582,26 @@ public class GameManager : NetworkBehaviour {
 
     public Vector3 GetGridPlayer2Position() {
         return gridPlayer2.transform.position;
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void QuitGameRpc() {
+        if (NetworkManager.Singleton.IsServer)
+            ShutdownAndDisconnectPlayersRpc();
+        SceneManager.LoadScene("TelaInicialScene");
+    }
+
+    [Rpc(SendTo.Server)]
+    public void ShutdownAndDisconnectPlayersRpc() {
+        NetworkManager.Singleton.DisconnectClient(1);
+        NetworkManager.Singleton.Shutdown();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void TriggerEmojiAnimationRpc(int spriteIndex, PlayerType playerType) {
+        OnEmojiCall?.Invoke(this, new EmojiCallEventArgs {
+            spriteIndex = spriteIndex,
+            playerType = playerType
+        });
     }
 }

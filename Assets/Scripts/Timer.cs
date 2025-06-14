@@ -7,41 +7,40 @@ public class Timer : MonoBehaviour {
     [SerializeField] float remainingTime = 0f;
     [SerializeField] float ROUND_DURATION = 20f;
 
-    public event EventHandler OnTimerEnd;
+    public bool IsTimerRunning = false;
 
     private void Start() {
-        GameManager.Instance.OnGameStart += GameManager_OnGameStart;
         GameManager.Instance.OnChangePlayablePlayerType += GameManager_OnChangePlayablePlayerType;
-        Hide();
+
+        StartTimer(ROUND_DURATION);
     }
 
     void Update() {
+        if (!IsTimerRunning) return;
+
         if (remainingTime > 0f) {
             remainingTime -= Time.deltaTime;
         } else {
             remainingTime = 0f;
             timerText.outlineColor = Color.black;
             timerText.faceColor = Color.red;
-            OnTimerEnd?.Invoke(this, EventArgs.Empty);
+            IsTimerRunning = false;
+            if(GameManager.Instance.IsServer)
+                GameManager.Instance.LostTurnRpc();
         }
 
-        int minutes = Mathf.Max(0, Mathf.FloorToInt(remainingTime / 60));
-        int seconds = Mathf.Max(0, Mathf.FloorToInt(remainingTime % 60));
+        int minutes = Mathf.Max(0, Mathf.CeilToInt(remainingTime / 60));
+        int seconds = Mathf.Max(0, Mathf.CeilToInt(remainingTime % 60));
 
         timerText.text = string.Format("{1:00}", minutes, seconds);
     }
 
-    private void GameManager_OnGameStart(object sender, EventArgs e) {
-        StartTimer(ROUND_DURATION);
-        Show();
-    }
-
     private void GameManager_OnChangePlayablePlayerType(object sender, GameManager.PlayerTypeEventArgs e) {
         StartTimer(ROUND_DURATION);
-        Show();
     }
 
     public void StartTimer(float time) {
+        IsTimerRunning = true;
         remainingTime = time;
         timerText.outlineColor = Color.white;
         timerText.faceColor = Color.white;

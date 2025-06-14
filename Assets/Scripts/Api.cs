@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 public class Api {
+    // public string baseUrl { get; set; } = "http://localhost:5001";
     public string baseUrl { get; set; } = "http://api.dubortoto.com.br";
 
     public async Task<SimpleJSON.JSONNode> CallApi(string path) {
