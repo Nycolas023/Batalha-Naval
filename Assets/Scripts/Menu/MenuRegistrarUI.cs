@@ -19,12 +19,13 @@ public class MenuRegistrarUI : MonoBehaviour {
 
     [SerializeField] private MenuPrincipalUI MenuPrincipalUI;
 
-    [SerializeField] private Api Api;
     [SerializeField] private PlayerModelSO Player;
+    private Api api;
 
     private void Start() {
         ConfirmarRegistrarButton.onClick.AddListener(async () => await HandleConfirmarRegistrarButtonClickAsync());
         LoginButton.onClick.AddListener(HandleLoginButtonClick);
+        api = new Api();
     }
 
     private async Task HandleConfirmarRegistrarButtonClickAsync() {
@@ -46,30 +47,15 @@ public class MenuRegistrarUI : MonoBehaviour {
             ErrorRegistrarSenhaUI.Show();
             return;
         }
-        /*
-        {
-            "nickname": "string",
-            "login": "string",
-            "password": "string",
-            "moneyAmount": 0,
-            "presentTheme": 0,
-            "victory": 0,
-            "defeat": 0,
-            "boatsSunk": 0
-        }
-        */
 
         var body = @"{
             ""nickname"": """ + usuario + @""",
             ""login"": """ + usuario + @""",
             ""password"": """ + senha + @""",
             ""moneyAmount"": 0,
-            ""presentTheme"": 0,
-            ""victory"": 0,
-            ""defeat"": 0,
-            ""boatsSunk"": 0
+            ""presentTheme"": ""Piscina""
         }";
-        SimpleJSON.JSONNode response = await Api.CallApi("User/register", body);
+        SimpleJSON.JSONNode response = await api.CallApi("User/register", body);
 
         if (response == null) {
             ErrorRegistrarNomeUI.Show();
@@ -81,7 +67,7 @@ public class MenuRegistrarUI : MonoBehaviour {
             ""login"": """ + usuario + @""",
             ""password"": """ + senha + @"""
         }";
-        response = await Api.CallApi("User/login", body);
+        response = await api.CallApi("User/login", body);
 
         if (response == null) {
             ErrorRegistrarNomeUI.Show();
