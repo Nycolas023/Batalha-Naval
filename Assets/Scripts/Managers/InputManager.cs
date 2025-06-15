@@ -66,7 +66,7 @@ public class InputManager : MonoBehaviour
                 string gridName = baseCell.transform.parent.name;
                 var currentPlayer = GameManager.Instance.GetCurrentPlayablePlayerType();
 
-                Debug.Log($"👀 Mouse sobre a célula do grid: {gridName} e player {currentPlayer}");
+                // Debug.Log($"👀 Mouse sobre a célula do grid: {gridName} e player {currentPlayer}");
 
 
                 Vector2Int basePos = baseCell.GetGridPosition();

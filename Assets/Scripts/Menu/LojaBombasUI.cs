@@ -36,7 +36,7 @@ public class LojaBombasUI : MonoBehaviour, ILoja {
         _ = UpdatePlayerSO();
     }
 
-    private async Task UpdatePlayerSO() {
+    public async Task UpdatePlayerSO() {
         var player = await api.UpdatePlayerModel(Player.Value.User_Id);
         Player.Value = player;
         MoneyText.text = Player.Value.User_Money_Amount.ToString();
@@ -80,12 +80,14 @@ public class LojaBombasUI : MonoBehaviour, ILoja {
     private void HandleTemasButtonClick() {
         SoundManager.Instance.PlayClickSound();
         TemasUI.Show();
+        _ = TemasUI.UpdatePlayerSO();
         Hide();
     }
 
     private void HandleMoedasButtonClick() {
         SoundManager.Instance.PlayClickSound();
         MoedasUI.Show();
+        _ = MoedasUI.UpdatePlayerSO();
         Hide();
     }
 

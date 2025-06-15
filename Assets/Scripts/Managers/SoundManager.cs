@@ -48,6 +48,9 @@ public class SoundManager : MonoBehaviour {
         } else {
             Debug.LogWarning("Background audio source or music clip is not set.");
         }
+        
+        backgroundAudioSource.volume = 0.2f;
+        audioSource.volume = 0.5f;
     }
 
     public void PlaySound(AudioClip clip) {

@@ -13,7 +13,7 @@ public class GameManager : NetworkBehaviour {
     public const int GRID_HEIGHT = 10;
     public const float CELL_SIZE = 1.0f;
     public const float GRIDS_DISTANCE = 2.8f;
-    public const int MAX_BOATS = 1;
+    public const int MAX_BOATS = 5;
     public static GameManager Instance { get; private set; }
 
     [SerializeField] private Grid gridPlayer1;
@@ -35,7 +35,9 @@ public class GameManager : NetworkBehaviour {
     private PlayerType localPlayerType;
     public List<IBoat> localPlayerBoats = new List<IBoat>();
     public NetworkVariable<PlayerType> currentPlayablePlayerType = new NetworkVariable<PlayerType>(PlayerType.None);
+    public NetworkVariable<int> Player1Id = new NetworkVariable<int>(0);
     public NetworkVariable<FixedString64Bytes> Player1Name = new NetworkVariable<FixedString64Bytes>("Player 1 teste");
+    public NetworkVariable<int> Player2Id = new NetworkVariable<int>(0);
     public NetworkVariable<FixedString64Bytes> Player2Name = new NetworkVariable<FixedString64Bytes>("Player 2 teste");
     public string localThemeSelected = "";
     public int localNumberOfBoastsOnGrid = 0;
@@ -91,6 +93,7 @@ public class GameManager : NetworkBehaviour {
         }
 
         SetPlayerNameRpc(playerModel.Value.User_Nickname, localPlayerType);
+        SetPlayerIdRpc(playerModel.Value.User_Id, localPlayerType);
         _ = SetThemeURL();
     }
 
@@ -109,6 +112,15 @@ public class GameManager : NetworkBehaviour {
             Player1Name.Value = playerName;
         } else if (playerType == PlayerType.Player2) {
             Player2Name.Value = playerName;
+        }
+    }
+
+    [Rpc(SendTo.Server)]
+    private void SetPlayerIdRpc(int user_Id, PlayerType playerType) {
+        if (playerType == PlayerType.Player1) {
+            Player1Id.Value = user_Id;
+        } else if (playerType == PlayerType.Player2) {
+            Player2Id.Value = user_Id;
         }
     }
 
@@ -252,10 +264,9 @@ public class GameManager : NetworkBehaviour {
             return;
         } else {
             TriggerChangeGamePositionColorRpc(x, z, playerType);
-            if (DidProjectileHit(x, z, playerType)) SoundManager.Instance.PlayAcertoSound(localThemeSelected);
-            else SoundManager.Instance.PlayErroSound(localThemeSelected);
+            TriggerShotProjectileSoundRpc(DidProjectileHit(x, z, playerType));
+            CheckIfBoatIsDestroyedRpc(x, z, playerType);
         }
-
 
         currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
         //UpdateGridCollidersPerTurn();
@@ -278,13 +289,15 @@ public class GameManager : NetworkBehaviour {
 
                 if (targetX >= 0 && targetX < GRID_WIDTH && targetZ >= 0 && targetZ < GRID_HEIGHT) {
                     TriggerChangeGamePositionColorRpc(targetX, targetZ, playerType);
-                    if (DidProjectileHit(targetX, targetZ, playerType)) didProjectileHit = true;
+                    if (DidProjectileHit(targetX, targetZ, playerType)) {
+                        didProjectileHit = true;
+                    }
                 }
             }
         }
 
-        if (didProjectileHit) SoundManager.Instance.PlayAcertoSound(localThemeSelected);
-        else SoundManager.Instance.PlayErroSound(localThemeSelected);
+        TriggerShotProjectileSoundRpc(didProjectileHit);
+        if (didProjectileHit) CheckIfBoatIsDestroyedRpc(x, z, playerType);
 
         // Troca o turno
         currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
@@ -312,12 +325,14 @@ public class GameManager : NetworkBehaviour {
 
             if (targetX >= 0 && targetX < GRID_WIDTH && targetZ >= 0 && targetZ < GRID_HEIGHT) {
                 TriggerChangeGamePositionColorRpc(targetX, targetZ, playerType);
-                if (DidProjectileHit(targetX, targetZ, playerType)) didProjectileHit = true;
+                if (DidProjectileHit(targetX, targetZ, playerType)) {
+                    didProjectileHit = true;
+                }
             }
         }
 
-        if (didProjectileHit) SoundManager.Instance.PlayAcertoSound(localThemeSelected);
-        else SoundManager.Instance.PlayErroSound(localThemeSelected);
+        TriggerShotProjectileSoundRpc(didProjectileHit);
+        if (didProjectileHit) CheckIfBoatIsDestroyedRpc(x, z, playerType);
 
         currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
         Invoke(nameof(ChangeCameraPositionRpc), 1.1f);
@@ -339,8 +354,7 @@ public class GameManager : NetworkBehaviour {
             gameObject.Play();
             Destroy(gameObject.gameObject, 2f);
 
-            CheckIfBoatIsDestroyedRpc(x, z, playerType);
-            CheckWinnerRpc();
+            if(IsServer) CheckWinnerRpc();
         }
     }
 
@@ -349,6 +363,11 @@ public class GameManager : NetworkBehaviour {
         return gridArrayPlayer[x, z].isOccupied;
     }
 
+    [Rpc(SendTo.ClientsAndHost)]
+    public void TriggerShotProjectileSoundRpc(bool didProjectileHit) {
+        if (didProjectileHit) SoundManager.Instance.PlayAcertoSound(localThemeSelected);
+        else SoundManager.Instance.PlayErroSound(localThemeSelected);
+    }
 
     [Rpc(SendTo.ClientsAndHost)]
     public void ChangeCameraPositionRpc() {
@@ -523,7 +542,16 @@ public class GameManager : NetworkBehaviour {
                     }
                 }
             }
-            Debug.Log("Boat destroyed!");
+            // Debug.Log("Boat destroyed!");
+
+            if (playerType != localPlayerType) {
+                var api = new Api();
+                if (playerType == PlayerType.Player1 && !IsServer) {
+                    _ = api.CallApi("User/AddBoatSunk/" + Player1Id.Value, "");
+                } else if (playerType == PlayerType.Player2 && !IsServer) {
+                    _ = api.CallApi("User/AddBoatSunk/" + Player2Id.Value, "");
+                }
+            }
         }
     }
 
@@ -556,6 +584,18 @@ public class GameManager : NetworkBehaviour {
             playerType = playerType
         });
         TriggerChangePlayablePlayerTypeRpc(playerType);
+        if (IsHost) {
+            var api = new Api();
+            if (playerType == PlayerType.Player1) {
+                Debug.Log("Player 1 won! Player1Id:" + Player1Id.Value + " Player2Id:" + Player2Id.Value);
+                _ = api.CallApi("User/AddMatchVictory/" + Player1Id.Value, "");
+                _ = api.CallApi("User/AddMatchDefeat/" + Player2Id.Value, "");
+            } else {
+                Debug.Log("Player 2 won! Player1Id:" + Player1Id.Value + " Player2Id:" + Player2Id.Value);
+                _ = api.CallApi("User/AddMatchVictory/" + Player2Id.Value, "");
+                _ = api.CallApi("User/AddMatchDefeat/" + Player1Id.Value, "");
+            }
+        }
     }
 
     private bool CheckGridForWinner(GamePosition[,] gridArray) {
