@@ -10,6 +10,8 @@ public class GamePosition : MonoBehaviour {
     public bool isOccupied = false;
     public IBoat boatOnPosition = null;
 
+    [SerializeField] private GameObject shotIndicator;
+
     private void OnMouseDown() {
         var playerType = GameManager.Instance.GetLocalPlayerType();
         var attackMode = InputManager.Instance.currentAttackMode;
@@ -45,6 +47,14 @@ public class GamePosition : MonoBehaviour {
 
     public void SetHasBeenShot(bool hasBeenShot) {
         this.hasBeenShot = hasBeenShot;
+    }
+
+    public void ShowShotIndicator() {
+        if (hasBeenShot && isOccupied) shotIndicator.SetActive(true);
+    }
+
+    public void HideShotIndicator() {
+        shotIndicator.SetActive(false);
     }
 
     public Vector2Int GetGridPosition() {

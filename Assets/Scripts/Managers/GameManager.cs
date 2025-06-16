@@ -329,6 +329,7 @@ public class GameManager : NetworkBehaviour {
         GamePosition gamePosition = gridArrayPlayer[x, z];
 
         gamePosition.GetComponent<GamePosition>().SetHasBeenShot(true);
+        if (localPlayerType != playerType) gamePosition.GetComponent<GamePosition>().ShowShotIndicator();
 
         Vector3 targetPosition = gamePosition.transform.position;
         ShootProjectileAnimation.Instance.SpawnProjectileAnimation(targetPosition, playerType);
@@ -605,6 +606,7 @@ public class GameManager : NetworkBehaviour {
                 gridArray[x, z].isOccupied = false;
                 gridArray[x, z].hasBeenShot = false;
                 gridArray[x, z].boatOnPosition = null;
+                gridArray[x, z].GetComponent<GamePosition>().HideShotIndicator();
             }
         }
     }
