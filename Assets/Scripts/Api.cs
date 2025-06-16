@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -6,15 +5,15 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 public class Api {
-    public string baseUrl { get; set; } = "http://localhost:5001";
-    // public string baseUrl { get; set; } = "http://api.dubortoto.com.br";
+    // public string baseUrl { get; set; } = "http://localhost:5001";
+    public string baseUrl { get; set; } = "http://api.dubortoto.com.br";
 
     public async Task<SimpleJSON.JSONNode> CallApi(string path) {
         using (UnityWebRequest webRequest = UnityWebRequest.Get($"{baseUrl}/{path}")) {
             await webRequest.SendWebRequest();
 
             if (webRequest.result == UnityWebRequest.Result.ConnectionError || webRequest.result == UnityWebRequest.Result.ProtocolError) {
-                Debug.LogError("Error: " + webRequest.error);
+                Debug.LogError("Error: " + webRequest.error + $" for url: {baseUrl}/{path}");
                 return null;
             } else {
                 SimpleJSON.JSONNode json = SimpleJSON.JSON.Parse(webRequest.downloadHandler.text);
@@ -32,7 +31,7 @@ public class Api {
             await webRequest.SendWebRequest();
 
             if (webRequest.result == UnityWebRequest.Result.ConnectionError || webRequest.result == UnityWebRequest.Result.ProtocolError) {
-                Debug.LogError("Error: " + webRequest.error);
+                Debug.LogError("Error: " + webRequest.error + $" for url: {baseUrl}/{url}");
                 return null;
             } else {
                 SimpleJSON.JSONNode json = SimpleJSON.JSON.Parse(webRequest.downloadHandler.text);
@@ -74,7 +73,7 @@ public class Api {
             await request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError) {
-                Debug.LogError("Error: " + request.error);
+                Debug.LogError("Error: " + request.error + " for url: " + url);
                 return null;
             } else {
                 SimpleJSON.JSONNode json = SimpleJSON.JSON.Parse(request.downloadHandler.text);
@@ -92,7 +91,7 @@ public class Api {
             await request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError) {
-                Debug.LogError("Error: " + request.error);
+                Debug.LogError("Error: " + request.error + " for url: " + url);
                 return null;
             } else {
                 Texture2D texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
@@ -107,7 +106,7 @@ public class Api {
             await request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError) {
-                Debug.LogError("Error: " + request.error);
+                Debug.LogError("Error: " + request.error + " for url: " + url);
                 return null;
             } else {
                 SimpleJSON.JSONNode json = SimpleJSON.JSON.Parse(request.downloadHandler.text);
@@ -122,7 +121,7 @@ public class Api {
             await request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError) {
-                Debug.LogError("Error: " + request.error);
+                Debug.LogError("Error: " + request.error + " for url: " + url);
                 return null;
             } else {
                 SimpleJSON.JSONNode json = SimpleJSON.JSON.Parse(request.downloadHandler.text);
