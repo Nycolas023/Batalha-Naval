@@ -18,10 +18,9 @@ public class GameManager : NetworkBehaviour {
     [SerializeField] private GameObject cellPrefab;
     [SerializeField] private ParticleSystem explosionEffectPrefab;
     [SerializeField] private Timer timer;
-    [SerializeField] private PlayerModelSO playerModel;
+    [SerializeField] public PlayerModelSO playerModel;
     [SerializeField] private Material defaultPositionMaterial;
     [SerializeField] private Transform floor;
-
     public enum PlayerType {
         None,
         Player1,
@@ -215,7 +214,6 @@ public class GameManager : NetworkBehaviour {
 
 
         currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
-        //UpdateGridCollidersPerTurn();
 
         Invoke(nameof(ChangeCameraPositionRpc), 1.1f);
     }
@@ -236,7 +234,6 @@ public class GameManager : NetworkBehaviour {
                 }
             }
         }
-
         // Troca o turno
         currentPlayablePlayerType.Value = playerType == PlayerType.Player1 ? PlayerType.Player2 : PlayerType.Player1;
         Invoke(nameof(ChangeCameraPositionRpc), 1.1f);
@@ -246,7 +243,7 @@ public class GameManager : NetworkBehaviour {
     public void OnClickDiagonalXRpc(int x, int z, PlayerType playerType) {
         if (!isPlayer1Ready.Value || !isPlayer2Ready.Value) return;
         if (currentPlayablePlayerType.Value != playerType) return;
-
+        
         Vector2Int[] offsets = {
             new Vector2Int(0, 0),     // centro
             new Vector2Int(-1, -1),   // diagonal superior esquerda

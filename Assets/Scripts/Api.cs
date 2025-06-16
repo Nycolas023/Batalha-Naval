@@ -116,20 +116,42 @@ public class Api {
                   .Replace(")", "%29");
     }
 
-    public async Task<List<int>> GetBombTypesForUser(int userId) {
-        string url = $"Bomb/GetOwnedBombs/{userId}";
+    public class BombApiResponse {
+        public int bomb_type;
+        public int stored_quantity;
+    }
 
+    public async Task<List<BombApiResponse>> GetBombTypesForUser(int userId) {
+        string url = $"Bomb/GetOwnedBombs/{userId}";
         SimpleJSON.JSONNode response = await CallApi(url);
-        List<int> bombTypes = new List<int>();
+
+        List<BombApiResponse> bombList = new();
 
         if (response != null && response.IsArray) {
             foreach (var item in response.AsArray) {
-                int bombType = item.Value["bomb_type"].AsInt;
-                bombTypes.Add(bombType);
+                BombApiResponse bomb = new BombApiResponse {
+                    bomb_type = item.Value["bomb_type"].AsInt,
+                    stored_quantity = item.Value["stored_quantity"].AsInt
+                };
+                bombList.Add(bomb);
             }
         }
 
-        return bombTypes;
+        return bombList;
+    }
+
+    public async Task<bool> UseBomb(int userId, int bombId) {
+        string url = $"Bomb/UseBomb/{userId}/{bombId}";
+
+        var response = await CallApi(url, "");  // Faz POST com body vazio
+
+        if (response != null) {
+            Debug.Log($"✅ Bomba consumida com sucesso: User {userId}, BombId {bombId}");
+            return true;
+        }
+
+        Debug.LogWarning($"❌ Falha ao consumir bomba para o User {userId}, BombId {bombId}");
+        return false;
     }
 
     public async Task<PlayerModel> UpdatePlayerModel(int userId) {
