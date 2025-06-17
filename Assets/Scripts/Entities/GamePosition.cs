@@ -17,6 +17,11 @@ public class GamePosition : MonoBehaviour {
         var attackMode = InputManager.Instance.currentAttackMode;
         var selectedBomb = BombSelectorUI.Instance.GetCurrentBombData();
 
+        if (playerType != GameManager.Instance.currentPlayablePlayerType.Value) {
+            Debug.Log("Not your turn!");
+            return;
+        }
+
         // ✅ Bloqueia se for bomba especial e o jogador não tiver quantidade
         if ((attackMode == InputManager.AttackMode.Area2x2 || attackMode == InputManager.AttackMode.X) && selectedBomb.storedQuantity <= 0) {
             Debug.LogWarning("⛔ Sem bombas disponíveis desse tipo!");
