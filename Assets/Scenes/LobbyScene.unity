@@ -5808,7 +5808,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: CRIAR LOBBY
+  m_text: Nova Sala
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d176824d6d720104495c5457b59a75c0, type: 2}
   m_sharedMaterial: {fileID: -8424535152395869691, guid: d176824d6d720104495c5457b59a75c0, type: 2}
